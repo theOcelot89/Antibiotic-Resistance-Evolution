@@ -17,3 +17,6 @@ plan multiplot that seems this way for population dynamics for parameters of det
                             |           |           |           |           |
                             +-----------+-----------+-----------+-----------+
   DAY OF TREATMENT STOP            3          7            9        etc.
+
+
+-> For some reason when plt.show() is called within an env.view() it renders all the plots on the script when they are initialized 

@@ -50,6 +50,7 @@ class Environment():
 
     def trim(self):
         '''limiting environmental variation between 0 & 1'''
+        # because trim will work directly on self.variation its action is irreversible & will follow the instance for the rest of the script when plots are constructed 
 
         self.variation[self.variation < 0] = 0  # if any of the values are negative, set them to 0
         self.variation[self.variation > 1] = 1    # if any of the values are greater than 1, set them to 1
@@ -70,22 +71,38 @@ class Environment():
     def save(self):
         self.fig.savefig(f"Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png")
 
-    def gen_responses(self, genotypes):
+    def gene_responses(self, genotypes):
 
-        fig, ax = self.fig, self.ax # create a copy of the current variation plot (keep clean the original)
+        fig, ax = self._create_plot() # create a copy of the current variation plot (keep clean the original)
 
         for name, params in genotypes.items():
             I = reaction_norm(params["I0"], params["b"], self.variation)
-            ax.plot(self.t, I, label=f"{name},IO={params["I0"]},b ={params["b"]}")
+            ax.plot(self.t, I, label=f"{name}, IO={params["I0"]},b ={params["b"]}")
 
-            ax.set_title('Phenotypic Response')
-            ax.set_xlabel('Time (t)')
-            ax.set_ylabel('Phenotypic response (I)')
-            ax.legend(bbox_to_anchor=(1.32, 1))
+        ax.set_title('Phenotypic Response')
+        ax.set_xlabel('Time (t)')
+        ax.set_ylabel('Phenotypic response (I)')
+        ax.legend(bbox_to_anchor=(1.32, 1))
+
+        fig.savefig("Responses to Environmental variation")
+
+    def gene_reaction_norms(self, genotypes):
+
+        fig, ax = plt.subplots(figsize=(12,6)) # create plot from scratch
+
+        for name, params in genotypes.items():
+            I = reaction_norm(params["I0"], params["b"], self.variation)
+            ax.plot(self.variation, I, label=f"{name}, IO={params["I0"]},b ={params["b"]}")
+
+        pos = ax.get_position() #returns bbox in order to manipulate width/height
+        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot 
+
+        ax.set_title('Reaction Norms')
+        ax.set_xlabel('Environmental Variation (E)')
+        ax.set_ylabel('Phenotypic response (I)')
 
         fig.savefig("Reaction Norms")
-
-
 
 #endregion
 
@@ -129,7 +146,6 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, environment):
 
     return max(growth_rate, -X / 0.04)
 
-
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -166,37 +182,16 @@ initial_populations = [1e3]
 
 #region environment construction
 
-env = Environment(A=1, B=0.1, L=10, R=100, t=110)
-# env.view()
-# env.save()
-env.trim()
-# env.view()
-env.save()
+environment = Environment(A=1, B=0.1, L=10, R=100, t=110)
+environment.trim()
+environment.save()
 
 #endregion
 
-env.gen_responses(genotypes)
+#region norms & responses to environmental variation
 
-
-#region reaction norms
-    
-fig, ax = plt.subplots(figsize=(12,6))
-
-for name, params in genotypes.items():
-    I = reaction_norm(params["I0"], params["b"], env.variation)
-    plt.plot(env.variation, I, label=f"{name},IO={params["I0"]},b ={params["b"]}")
-
-pos = ax.get_position() #returns bbox in order to manipulate width/height
-ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-ax.legend(bbox_to_anchor=(1.32, 1)) # place legend out of plot 
-
-ax.set_title('Reaction Norms for Genotypes')
-ax.set_xlabel('Environmental Variation (E)')
-ax.set_ylabel('Phenotypic Expression (I)')
-# ax.legend()
-
-fig.savefig('Reaction Norms for Genotypes.png') # Save the plot
-
+environment.gene_reaction_norms(genotypes)
+environment.gene_responses(genotypes)
 
 #endregion
 
@@ -208,7 +203,7 @@ fig, ax = plt.subplots(figsize=(14,6))
 
 for X0 in initial_populations:
 
-    X = odeint(dX_dt, X0, t, args=(psi_max, psi_min, zMIC, k, env)) # args will be passed down to dX_dt
+    X = odeint(dX_dt, X0, t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
     
     ax.plot(t, X, label=f'X0={'{:.0e}'.format(X0)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
     ax.set_xlabel('Time')
@@ -230,7 +225,7 @@ fig, ax = plt.subplots(figsize=(14,6))
 
 for name, params in genotypes.items():
 
-    X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, env)) # args will be passed down to dX_dt
+    X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
     
     ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_populations[0])} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
     ax.set_xlabel('Time')
