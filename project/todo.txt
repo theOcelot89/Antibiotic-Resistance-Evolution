@@ -20,3 +20,6 @@ plan multiplot that seems this way for population dynamics for parameters of det
 
 
 -> For some reason when plt.show() is called within an env.view() it renders all the plots on the script when they are initialized 
+
+-> IMPORTANT pass genotypes in DX/dt in order to run correct
+-> Integrate the dx/dt workflow inside the environment class
