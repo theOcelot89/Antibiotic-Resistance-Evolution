@@ -1,5 +1,5 @@
 # ╔══════════════════════════════════════════════════╗
-# ║                  Imports                         ║
+# ║                   Imports                        ║
 # ╚══════════════════════════════════════════════════╝
 #region
 import numpy as np
@@ -8,7 +8,7 @@ from scipy.integrate import odeint
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
-# ║                  Classes                         ║
+# ║                   Classes                        ║
 # ╚══════════════════════════════════════════════════╝
 #region
 
@@ -70,6 +70,23 @@ class Environment():
     def save(self):
         self.fig.savefig(f"Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png")
 
+    def gen_responses(self, genotypes):
+
+        fig, ax = self.fig, self.ax # create a copy of the current variation plot (keep clean the original)
+
+        for name, params in genotypes.items():
+            I = reaction_norm(params["I0"], params["b"], self.variation)
+            ax.plot(self.t, I, label=f"{name},IO={params["I0"]},b ={params["b"]}")
+
+            ax.set_title('Phenotypic Response')
+            ax.set_xlabel('Time (t)')
+            ax.set_ylabel('Phenotypic response (I)')
+            ax.legend(bbox_to_anchor=(1.32, 1))
+
+        fig.savefig("Reaction Norms")
+
+
+
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -116,7 +133,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, environment):
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
-# ║                 Parameters                       ║
+# ║                  Parameters                      ║
 # ╚══════════════════════════════════════════════════╝
 #region Environment
 #endregion
@@ -144,7 +161,7 @@ initial_populations = [1e3]
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
-# ║              Plots/Simulations                   ║
+# ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝
 
 #region environment construction
@@ -158,21 +175,8 @@ env.save()
 
 #endregion
 
-#region responses to environmental variation
+env.gen_responses(genotypes)
 
-for name, params in genotypes.items():
-    I = reaction_norm(params["I0"], params["b"], env.variation)
-    env.ax.plot(env.t, I, label=f"{name},IO={params["I0"]},b ={params["b"]}")
-
-env.ax.set_title('Phenotypic Response')
-env.ax.set_xlabel('Time (t)')
-env.ax.set_ylabel('Phenotypic response (I)')
-env.ax.legend(bbox_to_anchor=(1.32, 1))
-
-# Save the plot to a file
-env.fig.savefig(f'Reaction Norms Across Time.png')
-
-#endregion
 
 #region reaction norms
     
