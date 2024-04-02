@@ -164,7 +164,7 @@ genotypes = {
 }
 #endregion
 
-#region antibiotic response curve
+#region Antibiotic response curve
 
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
