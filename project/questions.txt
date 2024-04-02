@@ -1,0 +1,7 @@
+current_env = E[int(t) % T] # E is the environmental variation (as an environmental Cue) at time t
+
+dont understand how this actually works? tracked in debugger and i dont understand the changing of t
+
+
+E[E < 0] = 0.1  # if any of the values are negative, set them to 0
+    should set them to 0 instead of 0.1?

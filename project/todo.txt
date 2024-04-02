@@ -1,0 +1,19 @@
+plan multiplot that seems this way for population dynamics for parameters of determinism in different days of treatment days
+          lvl of determinism
+                            +-----------+-----------+-----------+-----------+
+                            | density   |           |           |           |
+                            |           |           |           |           |
+                    A       |           |           |           |           |
+                            |       time|           |           |           |
+                            +-----------+-----------+-----------+-----------+
+                            |           |           |           |           |
+                            |           |           |           |           |
+                    A       |           |           |           |           |
+                            |           |           |           |           |
+                            +-----------+-----------+-----------+-----------+
+                            |           |           |           |           |
+                            |           |           |           |           |
+                    A       |           |           |           |           |
+                            |           |           |           |           |
+                            +-----------+-----------+-----------+-----------+
+  DAY OF TREATMENT STOP            3          7            9        etc.
