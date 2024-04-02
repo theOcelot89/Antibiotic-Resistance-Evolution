@@ -60,12 +60,14 @@ class Environment():
     def view(self):
 
         renderPeriod = 4
-        self.ax.set_title(self.ax.get_title() + "\n" + f'Will disappear after {renderPeriod} seconds')
+        initial_title = self.ax.get_title() # keep original title to put after rendering
+        self.ax.set_title(self.ax.get_title() + "\n" + f'Will disappear after {renderPeriod} seconds') # temp title for rendering
         plt.show(block=False)
         plt.pause(renderPeriod)
+        self.ax.set_title(initial_title) # set initial title again
         
     def save(self):
-        self.fig.savefig(f"Env. variation A={self.A}, B={self.B}, L={self.L}, R={self.R}.png")
+        self.fig.savefig(f"Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png")
 
 #endregion
 
@@ -143,7 +145,7 @@ initial_populations = [1e3,1e4,1e5,1e6]
 # ║              Plots/Simulations                   ║
 # ╚══════════════════════════════════════════════════╝
 
-#region responses to environmental variation
+#region environment construction
 
 env = Environment(A=1, B=0.1, L=10, R=100, t=110)
 env.view()
@@ -152,9 +154,10 @@ env.trim()
 env.view()
 env.save()
 
+#endregion
 
+#region responses to environmental variation
 
-# plot individuals' response to environmental variation
 for (name, params), color in zip(genotypes.items(), colors):
     I = reaction_norm(params["I0"], params["b"], env.variation)
     env.ax.plot(env.t, I, label=f"{name},IO={params["I0"]},b ={params["b"]}", color=color)
