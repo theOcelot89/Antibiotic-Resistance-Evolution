@@ -77,12 +77,12 @@ class Environment():
 
         for name, params in genotypes.items():
             I = reaction_norm(params["I0"], params["b"], self.variation)
-            ax.plot(self.t, I, label=f"{name}, IO={params["I0"]},b ={params["b"]}")
+            ax.plot(self.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
 
         ax.set_title('Phenotypic Response')
         ax.set_xlabel('Time (t)')
         ax.set_ylabel('Phenotypic response (I)')
-        ax.legend(bbox_to_anchor=(1.32, 1))
+        ax.legend(bbox_to_anchor=(1.34, 1))
 
         fig.savefig("Responses to Environmental variation")
 
@@ -92,7 +92,7 @@ class Environment():
 
         for name, params in genotypes.items():
             I = reaction_norm(params["I0"], params["b"], self.variation)
-            ax.plot(self.variation, I, label=f"{name}, IO={params["I0"]},b ={params["b"]}")
+            ax.plot(self.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
 
         pos = ax.get_position() #returns bbox in order to manipulate width/height
         ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
