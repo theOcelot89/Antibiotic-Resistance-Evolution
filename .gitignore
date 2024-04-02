@@ -1,2 +1,2 @@
-# Ignore all png and jpeg files (will be rendered through scripts)
+# Ignore all png files (will be rendered through scripts)
 *.png

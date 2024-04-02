@@ -34,6 +34,7 @@ class Environment():
         # construct plot and immediately unpack
         self.fig, self.ax = self._create_plot()    
         
+        
         print(f"New environment created!")
 
     def _create_plot(self):
@@ -59,10 +60,10 @@ class Environment():
 
     def view(self):
 
-        renderPeriod = 4
+        renderPeriod = 3
         initial_title = self.ax.get_title() # keep original title to put after rendering
         self.ax.set_title(self.ax.get_title() + "\n" + f'Will disappear after {renderPeriod} seconds') # temp title for rendering
-        plt.show(block=False)
+        plt.show(block=False) # stop from blocking in the execution
         plt.pause(renderPeriod)
         self.ax.set_title(initial_title) # set initial title again
         
@@ -105,7 +106,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, environment):
     else:
         a_t = 0
     
-    current_env = environment.variation[int(t) % len(environment.t)] # E is the environmental variation (as an environmental Cue) at time t
+    current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
     growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
     growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, psi_min, zMIC, k) * X
 
@@ -117,15 +118,17 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, environment):
 # ╔══════════════════════════════════════════════════╗
 # ║                 Parameters                       ║
 # ╚══════════════════════════════════════════════════╝
+#region Environment
+#endregion
+
 #region Genotypes
-
 genotypes = {
-    "Genotype 1": {"I0": 0, "b": 0},
-    "Genotype 2": {"I0": 0.3, "b":0.5},
-    "Genotype 3": {"I0": 0, "b": 1}
+    "Genotype 1": {"I0": 0, "b": 0.5},
+    "Genotype 2": {"I0": 0, "b":1},
+    "Genotype 3": {"I0": 0.5, "b": 0},
+    "Genotype 4": {"I0": 0.3, "b": 0.5},
+    
 }
-colors = ['blue', 'green', 'red'] # Define colors for each genotype
-
 #endregion
 
 #region antibiotic response curve
@@ -135,9 +138,8 @@ zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
-# Time vector
-t = np.linspace(0, 10, 10)
-initial_populations = [1e3,1e4,1e5,1e6]
+t = np.linspace(0, 10, 10)# Time vector
+initial_populations = [1e3]
 
 #endregion
 
@@ -148,19 +150,19 @@ initial_populations = [1e3,1e4,1e5,1e6]
 #region environment construction
 
 env = Environment(A=1, B=0.1, L=10, R=100, t=110)
-env.view()
-env.save()
+# env.view()
+# env.save()
 env.trim()
-env.view()
+# env.view()
 env.save()
 
 #endregion
 
 #region responses to environmental variation
 
-for (name, params), color in zip(genotypes.items(), colors):
+for name, params in genotypes.items():
     I = reaction_norm(params["I0"], params["b"], env.variation)
-    env.ax.plot(env.t, I, label=f"{name},IO={params["I0"]},b ={params["b"]}", color=color)
+    env.ax.plot(env.t, I, label=f"{name},IO={params["I0"]},b ={params["b"]}")
 
 env.ax.set_title('Phenotypic Response')
 env.ax.set_xlabel('Time (t)')
@@ -176,9 +178,9 @@ env.fig.savefig(f'Reaction Norms Across Time.png')
     
 fig, ax = plt.subplots(figsize=(12,6))
 
-for (name, params), color in zip(genotypes.items(), colors):
+for name, params in genotypes.items():
     I = reaction_norm(params["I0"], params["b"], env.variation)
-    plt.plot(env.variation, I, label=f"{name},IO={params["I0"]},b ={params["b"]}", color=color)
+    plt.plot(env.variation, I, label=f"{name},IO={params["I0"]},b ={params["b"]}")
 
 pos = ax.get_position() #returns bbox in order to manipulate width/height
 ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
@@ -222,8 +224,8 @@ fig.savefig(f' Different initial population dynamics.png')
 
 fig, ax = plt.subplots(figsize=(14,6))
 
-for (name, params), color in zip(genotypes.items(), colors):
-    
+for name, params in genotypes.items():
+
     X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, env)) # args will be passed down to dX_dt
     
     ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_populations[0])} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
