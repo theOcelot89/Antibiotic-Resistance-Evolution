@@ -104,14 +104,15 @@ class Environment():
 
         fig.savefig("Reaction Norms")
 
-    def run_simulation(self, genotypes):
+    def run_simulation(self, genotypes, initial_populations):
 
         fig, ax = plt.subplots(figsize=(14,6)) # prepare plot
 
-        for name, params in genotypes.items():
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
 
-            X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, params, self)) # args will be passed down to dX_dt
-            ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_populations[0])} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
+                X = odeint(dX_dt, initial_population, t, args=(psi_max, psi_min, zMIC, k, params, self)) # args will be passed down to dX_dt
+                ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Bacterial Density')
@@ -120,7 +121,7 @@ class Environment():
 
         pos = ax.get_position() #returns bbox in order to manipulate width/height
         ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        ax.legend(bbox_to_anchor=(1.42, 1), fontsize="7") # place legend out of plot
+        ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
 
         fig.savefig(f'Genotypes dynamics.png')
 
@@ -194,7 +195,7 @@ k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
 t = np.linspace(0, 10, 10)# Time vector
-initial_populations = [1e3]
+initial_populations = [1e3, 1e6]
 
 #endregion
 
@@ -220,9 +221,12 @@ environment.gene_responses(genotypes)
 #region bacterial growth simulations
 
 
-environment.run_simulation(genotypes)
+environment.run_simulation(genotypes, initial_populations)
 
     #region different initial populations
+
+# for initial_population in initial_populations :
+#     environment.run_simulation(genotypes)
 
 # fig, ax = plt.subplots(figsize=(14,6))
 
@@ -242,27 +246,7 @@ environment.run_simulation(genotypes)
 
 # fig.savefig(f' Different initial population dynamics.png')
 
-#     #endregion
+    #endregion
 
-#     #region different genotypes
-
-# fig, ax = plt.subplots(figsize=(14,6))
-
-# for name, params in genotypes.items():
-
-#     X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
-#     ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_populations[0])} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
-
-# ax.set_xlabel('Time')
-# ax.set_ylabel('Bacterial Density')
-# ax.set_yscale('log')
-# ax.set_ylim(1, 1e9)
-
-# pos = ax.get_position() #returns bbox in order to manipulate width/height
-# ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-# ax.legend(bbox_to_anchor=(1.4, 1), fontsize="7") # place legend out of plot
-
-# fig.savefig(f' Different genotypes dynamics.png')
-#     #endregion
 
 #endregion
