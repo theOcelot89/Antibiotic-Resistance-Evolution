@@ -133,6 +133,14 @@ class Environment():
 # ║                  Functions                       ║
 # ╚══════════════════════════════════════════════════╝
 #region
+
+def yield_environments(environments_parameters): 
+
+    for name, params in environments_parameters.items():
+        A, B, L, R, t = params.values() # unpacking env parameters
+        env = Environment(A, B, L, R, t)
+        env.trim()
+        env.save()    
         
 def reaction_norm(I0, b, C):
     '''
@@ -234,10 +242,6 @@ environment.run_simulation(genotypes, initial_populations)
 
 #region main simulations
 
+yield_environments(environments)
 
-for name, params in environments.items():
-    A, B, L, R, t = params.values() # unpacking env parameters
-    env = Environment(A, B, L, R, t)
-    env.trim()
-    env.save() 
 #endregion
