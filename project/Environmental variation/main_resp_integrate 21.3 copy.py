@@ -136,11 +136,16 @@ class Environment():
 
 def yield_environments(environments_parameters): 
 
+    environment_list = []
+
     for name, params in environments_parameters.items():
         A, B, L, R, t = params.values() # unpacking env parameters
         env = Environment(A, B, L, R, t)
         env.trim()
-        env.save()    
+        env.save()
+        environment_list.append(env)
+    
+    return environment_list
         
 def reaction_norm(I0, b, C):
     '''
@@ -221,20 +226,20 @@ initial_populations = [1e3]
 # region test simulations
 
 
-    #region environment construction
-environment = Environment()
-environment.trim()
-environment.save()
-    #endregion
+#     #region environment construction
+# environment = Environment()
+# environment.trim()
+# environment.save()
+#     #endregion
 
-    #region norms & responses to environmental variation
-environment.gene_reaction_norms(genotypes)
-environment.gene_responses(genotypes)
-    #endregion
+#     #region norms & responses to environmental variation
+# environment.gene_reaction_norms(genotypes)
+# environment.gene_responses(genotypes)
+#     #endregion
 
-    #region bacterial growth simulations
-environment.run_simulation(genotypes, initial_populations)
-    #endregion
+#     #region bacterial growth simulations
+# environment.run_simulation(genotypes, initial_populations)
+#     #endregion
 
 #endregion
 
@@ -242,6 +247,29 @@ environment.run_simulation(genotypes, initial_populations)
 
 #region main simulations
 
-yield_environments(environments)
+environment_list = yield_environments(environments)
+
+
+# def 
+
+# this technique is based on matplots basic tutorial
+# https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+
+fig = plt.figure(figsize=(12, 18)) # empty figure for template
+gs = fig.add_gridspec(len(environment_list), hspace=0) # grid with dimensions & space between plots
+axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
+
+for i, env in enumerate(environment_list):
+    axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+    axs[i].legend()
+
+# for ax in axs:
+#     ax.label_outer()
+
+fig.savefig("Stacked Environments")
+    
+# fig = 
+
 
 #endregion
