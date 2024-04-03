@@ -14,7 +14,7 @@ from scipy.integrate import odeint
 
 class Environment():
 
-    def __init__(self, A = 1, B = 0.1, t = 365, L = 10, R = 10):
+    def __init__(self, A = 1, B = 0.1, L = 10, R = 10, t = 365):
         '''
         Environmental variation that individuals face, relative to their lifespam
         t = time, A = determinism magnitude, B = stochasticity magnitude
@@ -111,8 +111,8 @@ class Environment():
         for initial_population in initial_populations:
             for name, params in genotypes.items():
 
-                X = odeint(dX_dt, initial_population, t, args=(psi_max, psi_min, zMIC, k, params, self)) # args will be passed down to dX_dt
-                ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
+                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, self)) # args will be passed down to dX_dt
+                ax.plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Bacterial Density')
@@ -175,6 +175,12 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 # ║                  Parameters                      ║
 # ╚══════════════════════════════════════════════════╝
 #region Environment
+environments  = {
+    "Env 1": {"A": 0.3, "B": 0.1, "L": 10, "R": 100, "t": 110},
+    "Env 2": {"A": 0.6, "B": 0.1, "L": 10, "R": 100, "t": 110},
+    "Env 3": {"A": 0.9, "B": 0.1, "L": 10, "R": 100, "t": 110},
+    "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
+}
 #endregion
 
 #region Genotypes
@@ -194,8 +200,8 @@ zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
-t = np.linspace(0, 10, 10)# Time vector
-initial_populations = [1e3, 1e6]
+time_frame = np.linspace(0, 10, 10) #should be passed on odeint()
+initial_populations = [1e3]
 
 #endregion
 
@@ -203,50 +209,35 @@ initial_populations = [1e3, 1e6]
 # ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝
 
-#region environment construction
 
-environment = Environment(A=1, B=0.1, L=10, R=100, t=110)
+# region test simulations
+
+
+    #region environment construction
+environment = Environment()
 environment.trim()
 environment.save()
-
-#endregion
-
-#region norms & responses to environmental variation
-
-environment.gene_reaction_norms(genotypes)
-environment.gene_responses(genotypes)
-
-#endregion
-
-#region bacterial growth simulations
-
-
-environment.run_simulation(genotypes, initial_populations)
-
-    #region different initial populations
-
-# for initial_population in initial_populations :
-#     environment.run_simulation(genotypes)
-
-# fig, ax = plt.subplots(figsize=(14,6))
-
-# for X0 in initial_populations:
-
-#     X = odeint(dX_dt, X0, t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
-#     ax.plot(t, X, label=f'X0={'{:.0e}'.format(X0)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
-
-# ax.set_xlabel('Time')
-# ax.set_ylabel('Bacterial Density')
-# ax.set_yscale('log')
-# ax.set_ylim(1, 1e9)
-
-# pos = ax.get_position() #returns bbox in order to manipulate width/height
-# ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-# ax.legend(bbox_to_anchor=(1.4, 1), fontsize="7") # place legend out of plot
-
-# fig.savefig(f' Different initial population dynamics.png')
-
     #endregion
 
+    #region norms & responses to environmental variation
+environment.gene_reaction_norms(genotypes)
+environment.gene_responses(genotypes)
+    #endregion
 
+    #region bacterial growth simulations
+environment.run_simulation(genotypes, initial_populations)
+    #endregion
+
+#endregion
+
+
+
+#region main simulations
+
+
+for name, params in environments.items():
+    A, B, L, R, t = params.values() # unpacking env parameters
+    env = Environment(A, B, L, R, t)
+    env.trim()
+    env.save() 
 #endregion
