@@ -146,7 +146,22 @@ def yield_environments(environments_parameters):
         environment_list.append(env)
     
     return environment_list
-        
+
+def yield_environment_plots(environments):
+    # this technique is based on matplots basic tutorial
+    # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+
+    fig = plt.figure(figsize=(12, 18)) # empty figure for template
+    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+    fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
+
+    for i, env in enumerate(environments):
+        axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+        axs[i].legend()
+
+    fig.savefig("Stacked Environments")
+
 def reaction_norm(I0, b, C):
     '''
     Estimation of individuals' phenotypic reaction to environmental variation 
@@ -243,33 +258,9 @@ initial_populations = [1e3]
 
 #endregion
 
-
-
 #region main simulations
 
-environment_list = yield_environments(environments)
-
-
-# def 
-
-# this technique is based on matplots basic tutorial
-# https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
-
-fig = plt.figure(figsize=(12, 18)) # empty figure for template
-gs = fig.add_gridspec(len(environment_list), hspace=0) # grid with dimensions & space between plots
-axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
-
-for i, env in enumerate(environment_list):
-    axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-    axs[i].legend()
-
-# for ax in axs:
-#     ax.label_outer()
-
-fig.savefig("Stacked Environments")
-    
-# fig = 
-
+environment_list = yield_environments(environments)  # create a list of instances for the Environment class
+yield_environment_plots(environment_list) # render a combined plot for all the environments
 
 #endregion
