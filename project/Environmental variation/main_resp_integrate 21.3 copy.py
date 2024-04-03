@@ -104,6 +104,28 @@ class Environment():
 
         fig.savefig("Reaction Norms")
 
+    def run_simulation(self, genotypes):
+
+        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot
+
+        for name, params in genotypes.items():
+
+            X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, params, self)) # args will be passed down to dX_dt
+            ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_populations[0])} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e9)   
+
+        pos = ax.get_position() #returns bbox in order to manipulate width/height
+        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        ax.legend(bbox_to_anchor=(1.42, 1), fontsize="7") # place legend out of plot
+
+        fig.savefig(f'Genotypes dynamics.png')
+
+
+
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -131,7 +153,7 @@ def psi(a, psi_max, psi_min, zMIC, k):
     term = (a / zMIC)**k
     return psi_max - ((psi_max - psi_min) * term) / (term + 1)
 
-def dX_dt(X, t, psi_max, psi_min, zMIC, k, environment):
+def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
     '''function in which growth rate is calculated depending on the environmental conditions'''
 
     # decide in which timestep(e.g day) to quit the administration of antibiotic
@@ -197,47 +219,50 @@ environment.gene_responses(genotypes)
 
 #region bacterial growth simulations
 
+
+environment.run_simulation(genotypes)
+
     #region different initial populations
 
-fig, ax = plt.subplots(figsize=(14,6))
+# fig, ax = plt.subplots(figsize=(14,6))
 
-for X0 in initial_populations:
+# for X0 in initial_populations:
 
-    X = odeint(dX_dt, X0, t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
-    
-    ax.plot(t, X, label=f'X0={'{:.0e}'.format(X0)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Bacterial Density')
-    ax.set_yscale('log')
-    ax.set_ylim(1, 1e9)
+#     X = odeint(dX_dt, X0, t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
+#     ax.plot(t, X, label=f'X0={'{:.0e}'.format(X0)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
 
-pos = ax.get_position() #returns bbox in order to manipulate width/height
-ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-ax.legend(bbox_to_anchor=(1.4, 1), fontsize="7") # place legend out of plot
+# ax.set_xlabel('Time')
+# ax.set_ylabel('Bacterial Density')
+# ax.set_yscale('log')
+# ax.set_ylim(1, 1e9)
 
-fig.savefig(f' Different initial population dynamics.png')
+# pos = ax.get_position() #returns bbox in order to manipulate width/height
+# ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+# ax.legend(bbox_to_anchor=(1.4, 1), fontsize="7") # place legend out of plot
 
-    #endregion
+# fig.savefig(f' Different initial population dynamics.png')
 
-    #region different genotypes
+#     #endregion
 
-fig, ax = plt.subplots(figsize=(14,6))
+#     #region different genotypes
 
-for name, params in genotypes.items():
+# fig, ax = plt.subplots(figsize=(14,6))
 
-    X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
-    
-    ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_populations[0])} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Bacterial Density')
-    ax.set_yscale('log')
-    ax.set_ylim(1, 1e9)
+# for name, params in genotypes.items():
 
-pos = ax.get_position() #returns bbox in order to manipulate width/height
-ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-ax.legend(bbox_to_anchor=(1.4, 1), fontsize="7") # place legend out of plot
+#     X = odeint(dX_dt, initial_populations[0], t, args=(psi_max, psi_min, zMIC, k, environment)) # args will be passed down to dX_dt
+#     ax.plot(t, X, label=f'X0={'{:.0e}'.format(initial_populations[0])} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
 
-fig.savefig(f' Different genotypes dynamics.png')
-    #endregion
+# ax.set_xlabel('Time')
+# ax.set_ylabel('Bacterial Density')
+# ax.set_yscale('log')
+# ax.set_ylim(1, 1e9)
+
+# pos = ax.get_position() #returns bbox in order to manipulate width/height
+# ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+# ax.legend(bbox_to_anchor=(1.4, 1), fontsize="7") # place legend out of plot
+
+# fig.savefig(f' Different genotypes dynamics.png')
+#     #endregion
 
 #endregion
