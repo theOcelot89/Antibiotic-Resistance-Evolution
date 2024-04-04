@@ -155,6 +155,8 @@ def yield_environment_plots(environments):
     gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
     axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
     fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
+    for ax in axs.flat:
+        ax.set(xlabel='Time (t)', ylabel='Environmental variation (E)')
 
     for i, env in enumerate(environments):
         axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
@@ -162,6 +164,24 @@ def yield_environment_plots(environments):
         # axs[i].set_ylim(0,1)
 
     fig.savefig("Stacked Environments")
+
+def yield_phenotypic_responses(environments, genotypes):
+
+    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+    fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
+    for ax in axs.flat:
+        ax.set(xlabel='Time (t)', ylabel='Response (I)')
+
+    for i, env in enumerate(environments):
+
+        for name, params in genotypes.items():
+            I = reaction_norm(params["I0"], params["b"], env.variation)
+            axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+            axs[i].legend()
+
+    fig.savefig("Stacked Phenotypic Responses")
 
 def reaction_norm(I0, b, C):
     '''
@@ -206,7 +226,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 #region Environment
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
-environments  = {
+environments_params = {
     "Env 1": {"A": 0.3, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 2": {"A": 0.6, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 3": {"A": 0.9, "B": 0.1, "L": 10, "R": 100, "t": 110},
@@ -216,7 +236,7 @@ environments  = {
 #endregion
 
 #region Genotypes
-genotypes = {
+genotypes_params = {
     "Genotype 1": {"I0": 0, "b": 0.5},
     "Genotype 2": {"I0": 0, "b":1},
     "Genotype 3": {"I0": 0.5, "b": 0},
@@ -262,22 +282,22 @@ initial_populations = [1e3]
 #endregion
 
 #region main simulations
-environment_list = yield_environments(environments)  # create several environments
-yield_environment_plots(environment_list) # render a combined plot for all the environments
+environments = yield_environments(environments_params)  # create several environments
+yield_environment_plots(environments) # render a combined plot for all the environments
+yield_phenotypic_responses(environments, genotypes_params)
 
+# fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+# gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+# axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+# fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
 
-fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
-gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
-axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
+# for i, env in enumerate(environment_list):
 
-for i, env in enumerate(environment_list):
+#     for name, params in genotypes.items():
+#         I = reaction_norm(params["I0"], params["b"], env.variation)
+#         axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+#         axs[i].legend()
 
-    for name, params in genotypes.items():
-        I = reaction_norm(params["I0"], params["b"], env.variation)
-        axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-        axs[i].legend()
-
-fig.savefig("Stacked Phenotypic Responses")
+# fig.savefig("Stacked Phenotypic Responses")
 
 #endregion
