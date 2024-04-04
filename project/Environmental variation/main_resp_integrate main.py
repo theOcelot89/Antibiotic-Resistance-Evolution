@@ -265,39 +265,25 @@ initial_populations = [1e3]
 
 
 #     #region environment construction
-# environment = Environment()
-# environment.trim()
-# environment.save()
-#     #endregion
+environment = Environment()
+environment.trim()
+environment.save()
+    #endregion
 
-#     #region norms & responses to environmental variation
-# environment.gene_reaction_norms(genotypes)
-# environment.gene_responses(genotypes)
-#     #endregion
+    #region norms & responses to environmental variation
+environment.gene_reaction_norms(genotypes_params)
+environment.gene_responses(genotypes_params)
+    #endregion
 
-#     #region bacterial growth simulations
-# environment.run_simulation(genotypes, initial_populations)
-#     #endregion
+    #region bacterial growth simulations
+environment.run_simulation(genotypes_params, initial_populations)
+    #endregion
 
 #endregion
 
 #region main simulations
 environments = yield_environments(environments_params)  # create several environments
-yield_environment_plots(environments) # render a combined plot for all the environments
-yield_phenotypic_responses(environments, genotypes_params)
-
-# fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
-# gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
-# axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-# fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
-
-# for i, env in enumerate(environment_list):
-
-#     for name, params in genotypes.items():
-#         I = reaction_norm(params["I0"], params["b"], env.variation)
-#         axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-#         axs[i].legend()
-
-# fig.savefig("Stacked Phenotypic Responses")
+yield_environment_plots(environments) # multiplot for all environments
+yield_phenotypic_responses(environments, genotypes_params) # multiplot for phenotypic respones
 
 #endregion
