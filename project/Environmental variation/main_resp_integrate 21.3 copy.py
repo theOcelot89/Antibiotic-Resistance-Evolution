@@ -151,7 +151,7 @@ def yield_environment_plots(environments):
     # this technique is based on matplots basic tutorial
     # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
 
-    fig = plt.figure(figsize=(12, 18)) # empty figure for template
+    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template
     gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
     axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
     fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
@@ -159,6 +159,7 @@ def yield_environment_plots(environments):
     for i, env in enumerate(environments):
         axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
         axs[i].legend()
+        # axs[i].set_ylim(0,1)
 
     fig.savefig("Stacked Environments")
 
@@ -203,11 +204,14 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 # ║                  Parameters                      ║
 # ╚══════════════════════════════════════════════════╝
 #region Environment
+# All environments must have different keys otherwise will be overwritten
+# All environments must have at least one different value otherwise only the last will be saved
 environments  = {
     "Env 1": {"A": 0.3, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 2": {"A": 0.6, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 3": {"A": 0.9, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
+    # "Env 5": {"A": 1.0, "B": 0.3, "L": 10, "R": 100, "t": 110},
 }
 #endregion
 
@@ -237,7 +241,6 @@ initial_populations = [1e3]
 # ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝
 
-
 # region test simulations
 
 
@@ -259,8 +262,8 @@ initial_populations = [1e3]
 #endregion
 
 #region main simulations
-
-environment_list = yield_environments(environments)  # create a list of instances for the Environment class
+environment_list = yield_environments(environments)  # create several environments
 yield_environment_plots(environment_list) # render a combined plot for all the environments
+
 
 #endregion
