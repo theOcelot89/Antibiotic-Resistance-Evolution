@@ -125,8 +125,6 @@ class Environment():
 
         fig.savefig(f'Genotypes dynamics.png')
 
-
-
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -265,25 +263,45 @@ initial_populations = [1e3]
 
 
 #     #region environment construction
-environment = Environment()
-environment.trim()
-environment.save()
-    #endregion
+# environment = Environment()
+# environment.trim()
+# environment.save()
+#     #endregion
 
-    #region norms & responses to environmental variation
-environment.gene_reaction_norms(genotypes_params)
-environment.gene_responses(genotypes_params)
-    #endregion
+#     #region norms & responses to environmental variation
+# environment.gene_reaction_norms(genotypes_params)
+# environment.gene_responses(genotypes_params)
+#     #endregion
 
-    #region bacterial growth simulations
-environment.run_simulation(genotypes_params, initial_populations)
-    #endregion
+#     #region bacterial growth simulations
+# environment.run_simulation(genotypes_params, initial_populations)
+#     #endregion
 
 #endregion
 
 #region main simulations
 environments = yield_environments(environments_params)  # create several environments
-yield_environment_plots(environments) # multiplot for all environments
-yield_phenotypic_responses(environments, genotypes_params) # multiplot for phenotypic respones
+# yield_environment_plots(environments) # multiplot for all environments
+# yield_phenotypic_responses(environments, genotypes_params) # multiplot for phenotypic respones
 
 #endregion
+
+fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
+for ax in axs.flat:
+    ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
+
+for i, env in enumerate(environments):
+
+    # plt.legend(title = f"A={env.A}" )
+    for initial_population in initial_populations:
+        for name, params in genotypes_params.items():
+
+            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+            axs[i].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
+            axs[i].set_yscale('log')
+            axs[i].set_ylim(1, 1e9) 
+            axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
+fig.savefig("Stacked Population Dynamics")
