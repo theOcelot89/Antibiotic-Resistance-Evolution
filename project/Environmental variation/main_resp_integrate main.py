@@ -266,4 +266,18 @@ environment_list = yield_environments(environments)  # create several environmen
 yield_environment_plots(environment_list) # render a combined plot for all the environments
 
 
+fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
+
+for i, env in enumerate(environment_list):
+
+    for name, params in genotypes.items():
+        I = reaction_norm(params["I0"], params["b"], env.variation)
+        axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+        axs[i].legend()
+
+fig.savefig("Stacked Phenotypic Responses")
+
 #endregion
