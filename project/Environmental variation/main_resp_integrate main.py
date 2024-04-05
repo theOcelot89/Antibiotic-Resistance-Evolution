@@ -5,6 +5,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
+import io 
+from PIL import Image 
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -139,11 +141,14 @@ class Simulator():
         self.environments = self._yield_environments() # immediatly create environments
     
     def run(self):
-        self.yield_environment_plots()
-        self.yield_reaction_norms()
-        self.yield_phenotypic_responses()
-        self.yield_population_dynamics()
 
+        self.envs_plot = self.yield_environment_plots()
+        self.norms_plot = self.yield_reaction_norms()
+        self.responses_plot = self.yield_phenotypic_responses()
+        self.dynamics_plot = self.yield_population_dynamics()
+
+        self._generate_report()
+       
     def _yield_environments(self): 
 
         environment_list = []
@@ -157,6 +162,36 @@ class Simulator():
         
         return environment_list
 
+    def _generate_report(self):
+        # ok that was a touch one & a number of steps & guides have to be considered in order for a nice report sheet
+        # 1. convert figures to images (that is the only way to combine them) https://www.geeksforgeeks.org/saving-a-plot-as-an-image-in-python/
+        # 2. use fig.figAddSubplot technique to create the grid https://www.geeksforgeeks.org/how-to-display-multiple-images-in-one-figure-correctly-in-matplotlib/
+        # 3. use plt.imshow to render the image in the figure https://www.geeksforgeeks.org/how-to-display-multiple-images-in-one-figure-correctly-in-matplotlib/
+         
+        # print(self.norms_plot.get_size_inches())  #dynamically set width/height from the dimensions of the plots
+
+        img1 = fig2img(self.dynamics_plot)
+        img2 = fig2img(self.envs_plot)
+        img3 = fig2img(self.responses_plot)
+        img4 = fig2img(self.norms_plot)
+
+        fig = plt.figure(figsize=(12,7))
+
+        fig.add_subplot(141)
+        plt.imshow(img1)
+        plt.axis('off') 
+        fig.add_subplot(142)
+        plt.imshow(img2)
+        plt.axis('off') 
+        fig.add_subplot(143)
+        plt.imshow(img3)
+        plt.axis('off') 
+        fig.add_subplot(144)
+        plt.imshow(img4)
+        plt.axis('off')
+
+        fig.savefig('Report', dpi=600) # dpi for a better resolution
+        
     def yield_environment_plots(self):
         # this technique is based on matplots basic tutorial
         # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
@@ -174,6 +209,7 @@ class Simulator():
             # axs[i].set_ylim(0,1)
 
         fig.savefig("Stacked Environments")
+        return fig
 
     def yield_reaction_norms(self):
         
@@ -192,7 +228,8 @@ class Simulator():
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
         fig.savefig("Stacked Reaction Norms")
-
+        return fig
+    
     def yield_phenotypic_responses(self):
 
         fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
@@ -210,7 +247,8 @@ class Simulator():
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
         fig.savefig("Stacked Phenotypic Responses")
-
+        return fig
+    
     def yield_population_dynamics(self):
 
         fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
@@ -230,7 +268,9 @@ class Simulator():
                     axs[i].set_ylim(1, 1e9) 
                     axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
         fig.savefig("Stacked Population Dynamics")
-  
+        return fig
+    
+
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -273,6 +313,12 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 
     return max(growth_rate, -X / 0.04)
 
+def fig2img(fig): 
+    buf = io.BytesIO() 
+    fig.savefig(buf) 
+    buf.seek(0) 
+    img = Image.open(buf) 
+    return img 
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -318,21 +364,20 @@ initial_populations = [1e3]
 
 # region test simulations
 
-
 #     #region environment construction
-environment = Environment()
-environment.trim()
-environment.save()
-    #endregion
-
-    #region norms & responses to environmental variation
-environment.gene_reaction_norms(genotypes_params)
-environment.gene_responses(genotypes_params)
-    #endregion
-
-    #region bacterial growth simulations
-environment.run_simulation(genotypes_params, initial_populations)
+# environment = Environment()
+# environment.trim()
+# environment.save()
 #     #endregion
+
+#     #region norms & responses to environmental variation
+# environment.gene_reaction_norms(genotypes_params)
+# environment.gene_responses(genotypes_params)
+#     #endregion
+
+#     #region bacterial growth simulations
+# environment.run_simulation(genotypes_params, initial_populations)
+#      #endregion
 
 #endregion
 
