@@ -190,7 +190,7 @@ class Simulator():
         plt.imshow(img4)
         plt.axis('off')
 
-        fig.savefig('Report', dpi=600) # dpi for a better resolution
+        fig.savefig('Report', dpi=600, bbox_inches='tight') # dpi for a better resolution, bboxinches for trimming margins
         
     def yield_environment_plots(self):
         # this technique is based on matplots basic tutorial
