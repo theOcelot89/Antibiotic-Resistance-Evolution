@@ -140,7 +140,7 @@ def yield_environments(environments_parameters):
         A, B, L, R, t = params.values() # unpacking env parameters
         env = Environment(A, B, L, R, t)
         env.trim()
-        # env.save()
+        env.save()
         environment_list.append(env)
     
     return environment_list
@@ -181,26 +181,6 @@ def yield_phenotypic_responses(environments, genotypes):
 
     fig.savefig("Stacked Phenotypic Responses")
 
-def yield_population_dynamics(environments,genotypes):
-
-    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
-    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
-    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-    fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
-    for ax in axs.flat:
-        ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
-
-    for i, env in enumerate(environments):
-        for initial_population in initial_populations:
-            for name, params in genotypes.items():
-
-                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
-                axs[i].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
-                axs[i].set_yscale('log')
-                axs[i].set_ylim(1, 1e9) 
-                axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
-    fig.savefig("Stacked Population Dynamics")
-
 def reaction_norm(I0, b, C):
     '''
     Estimation of individuals' phenotypic reaction to environmental variation 
@@ -223,16 +203,18 @@ def psi(a, psi_max, psi_min, zMIC, k):
 
 def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
     '''function in which growth rate is calculated depending on the environmental conditions'''
-
+    t_g = 18
+    ant_a = 5
     # decide in which timestep(e.g day) to quit the administration of antibiotic
-    if t > 5: 
-        a_t = 3 # antibiotic concentration
+    if t % 18 < 5:
+        a_t = 2.3 # antibiotic concentration
     else:
         a_t = 0
     
     current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
     growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
-    growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, psi_min, zMIC, k) * X
+    deathrateModifier = - (growth_rate_modifier * 5)
+    growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, deathrateModifier, zMIC, k) * X * (1 - (X/1e9))
 
     return max(growth_rate, -X / 0.04)
 
@@ -245,21 +227,17 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
 environments_params = {
-    "Env 1": {"A": 0.3, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    "Env 2": {"A": 0.6, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    "Env 3": {"A": 0.9, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    # "Env 5": {"A": 1.0, "B": 0.3, "L": 10, "R": 100, "t": 110},
+    "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
 }
 #endregion
 
 #region Genotypes
 genotypes_params = {
-    "Genotype 1": {"I0": 0, "b": 0.5},
-    "Genotype 2": {"I0": 0, "b":1},
-    "Genotype 3": {"I0": 0.5, "b": 0},
-    "Genotype 4": {"I0": 0.3, "b": 0.5},
-    
+    "Genotype 1": {"I0": 0.25, "b": 1},
+    "Genotype 2": {"I0": 0.3, "b":0.5},
+    "Genotype 3": {"I0": 0.6, "b": 0.05},
 }
 #endregion
 
@@ -270,8 +248,8 @@ zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
-time_frame = np.linspace(0, 10, 10) #should be passed on odeint()
-initial_populations = [1e3]
+time_frame = np.linspace(0, 50, 50) #should be passed on odeint()
+initial_populations = [1e7]
 
 #endregion
 
@@ -279,23 +257,23 @@ initial_populations = [1e3]
 # ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝
 
-# region test simulations
+#region test simulations
 
 
-#     #region environment construction
-# environment = Environment()
-# environment.trim()
-# environment.save()
-#     #endregion
+    #region environment construction
+environment = Environment()
+environment.trim()
+environment.save()
+    #endregion
 
-#     #region norms & responses to environmental variation
-# environment.gene_reaction_norms(genotypes_params)
-# environment.gene_responses(genotypes_params)
-#     #endregion
+    #region norms & responses to environmental variation
+environment.gene_reaction_norms(genotypes_params)
+environment.gene_responses(genotypes_params)
+    #endregion
 
-#     #region bacterial growth simulations
-# environment.run_simulation(genotypes_params, initial_populations)
-#     #endregion
+    #region bacterial growth simulations
+environment.run_simulation(genotypes_params, initial_populations)
+    #endregion
 
 #endregion
 
@@ -306,5 +284,24 @@ yield_phenotypic_responses(environments, genotypes_params) # multiplot for pheno
 
 #endregion
 
+#region population growth multiplot
+fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
+for ax in axs.flat:
+    ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
 
-yield_population_dynamics(environments,genotypes_params)
+for i, env in enumerate(environments):
+
+    for initial_population in initial_populations:
+        for name, params in genotypes_params.items():
+
+            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+            axs[i].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
+            axs[i].set_yscale('log')
+            axs[i].set_ylim(1, 1e9) 
+            axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
+fig.savefig("Stacked Population Dynamics")
+
+#endregion
