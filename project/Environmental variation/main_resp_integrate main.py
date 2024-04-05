@@ -163,6 +163,24 @@ def yield_environment_plots(environments):
 
     fig.savefig("Stacked Environments")
 
+def yield_reaction_norms(environments,genotypes):
+    
+    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+    fig.suptitle(u"Reaction Norms", fontsize = 30)
+    for ax in axs.flat:
+        ax.set(xlabel='Enviromental Variation (E)', ylabel='Response (I)')
+
+    for i, env in enumerate(environments):
+
+        for name, params in genotypes.items():
+            I = reaction_norm(params["I0"], params["b"], env.variation)
+            axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+            axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+
+    fig.savefig("Stacked Reaction Norms")
+
 def yield_phenotypic_responses(environments, genotypes):
 
     fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
@@ -177,7 +195,7 @@ def yield_phenotypic_responses(environments, genotypes):
         for name, params in genotypes.items():
             I = reaction_norm(params["I0"], params["b"], env.variation)
             axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-            axs[i].legend()
+            axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
     fig.savefig("Stacked Phenotypic Responses")
 
@@ -302,9 +320,10 @@ initial_populations = [1e3]
 #region main simulations
 environments = yield_environments(environments_params)  # create several environments
 yield_environment_plots(environments) # multiplot for all environments
+yield_reaction_norms(environments,genotypes_params)
 yield_phenotypic_responses(environments, genotypes_params) # multiplot for phenotypic respones
-
+yield_population_dynamics(environments,genotypes_params) # multiplot for population dynamics
 #endregion
 
 
-yield_population_dynamics(environments,genotypes_params)
+
