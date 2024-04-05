@@ -175,7 +175,7 @@ class Simulator():
         img3 = fig2img(self.responses_plot)
         img4 = fig2img(self.norms_plot)
 
-        fig = plt.figure(figsize=(12,7))
+        fig = plt.figure(figsize=(20,7), layout="compressed")
 
         fig.add_subplot(141)
         plt.imshow(img1)
@@ -190,6 +190,8 @@ class Simulator():
         plt.imshow(img4)
         plt.axis('off')
 
+        # plt.subplots_adjust()
+        # fig.tight_layout()
         fig.savefig('Report', dpi=600, bbox_inches='tight') # dpi for a better resolution, bboxinches for trimming margins
         
     def yield_environment_plots(self):
@@ -331,8 +333,10 @@ environments_params = {
     "Env 1": {"A": 0.3, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 2": {"A": 0.6, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 3": {"A": 0.9, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    # "Env 5": {"A": 1.0, "B": 0.3, "L": 10, "R": 100, "t": 110},
+    # "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
+    # "Env 5": {"A": 1.0, "B": 0.2, "L": 10, "R": 100, "t": 110},
+    # "Env 7": {"A": 1.0, "B": 0.3, "L": 10, "R": 100, "t": 110},
+    # "Env 8": {"A": 1.0, "B": 0.4, "L": 10, "R": 100, "t": 110},
 }
 #endregion
 
