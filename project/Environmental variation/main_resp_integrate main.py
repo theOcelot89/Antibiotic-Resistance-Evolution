@@ -125,6 +125,12 @@ class Environment():
 
         fig.savefig(f'Genotypes dynamics.png')
 
+class Simulator():
+    def __init__(self, environment_params, genotype_params):
+        self.environment_params = environment_params,
+        self.genotype_params = genotype_params
+
+        
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
