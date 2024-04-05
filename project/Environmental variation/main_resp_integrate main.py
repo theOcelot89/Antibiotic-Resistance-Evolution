@@ -127,10 +127,100 @@ class Environment():
 
 class Simulator():
     def __init__(self, environment_params, genotype_params):
-        self.environment_params = environment_params,
-        self.genotype_params = genotype_params
 
+        self.environment_params = environment_params
+        self.genotypes = genotype_params
+
+        self.environments = self.yield_environments()
+
+    def yield_environments(self): 
+
+        environment_list = []
+
+        for name, params in self.environment_params.items():
+            A, B, L, R, t = params.values() # unpacking env parameters
+            env = Environment(A, B, L, R, t)
+            env.trim()
+            # env.save()
+            environment_list.append(env)
         
+        return environment_list
+
+    def yield_environment_plots(self):
+        # this technique is based on matplots basic tutorial
+        # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+
+        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template
+        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
+        for ax in axs.flat:
+            ax.set(xlabel='Time (t)', ylabel='Environmental variation (E)')
+
+        for i, env in enumerate(self.environments):
+            axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+            axs[i].legend()
+            # axs[i].set_ylim(0,1)
+
+        fig.savefig("Stacked Environments")
+
+    def yield_reaction_norms(self):
+        
+        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
+        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.suptitle(u"Reaction Norms", fontsize = 30)
+        for ax in axs.flat:
+            ax.set(xlabel='Enviromental Variation (E)', ylabel='Response (I)')
+
+        for i, env in enumerate(self.environments):
+
+            for name, params in self.genotypes.items():
+                I = reaction_norm(params["I0"], params["b"], env.variation)
+                axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+
+        fig.savefig("Stacked Reaction Norms")
+
+    def yield_phenotypic_responses(self):
+
+        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
+        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
+        for ax in axs.flat:
+            ax.set(xlabel='Time (t)', ylabel='Response (I)')
+
+        for i, env in enumerate(self.environments):
+
+            for name, params in self.genotypes.items():
+                I = reaction_norm(params["I0"], params["b"], env.variation)
+                axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+
+        fig.savefig("Stacked Phenotypic Responses")
+
+    def yield_population_dynamics(self):
+
+        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
+        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
+        for ax in axs.flat:
+            ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
+
+        for i, env in enumerate(self.environments):
+            for initial_population in initial_populations:
+                for name, params in self.genotypes.items():
+
+                    X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+                    axs[i].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
+                    axs[i].set_yscale('log')
+                    axs[i].set_ylim(1, 1e9) 
+                    axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
+        fig.savefig("Stacked Population Dynamics")
+
+   
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -138,92 +228,92 @@ class Simulator():
 # ╚══════════════════════════════════════════════════╝
 #region
 
-def yield_environments(environments_parameters): 
+# def yield_environments(environments_parameters): 
 
-    environment_list = []
+#     environment_list = []
 
-    for name, params in environments_parameters.items():
-        A, B, L, R, t = params.values() # unpacking env parameters
-        env = Environment(A, B, L, R, t)
-        env.trim()
-        # env.save()
-        environment_list.append(env)
+#     for name, params in environments_parameters.items():
+#         A, B, L, R, t = params.values() # unpacking env parameters
+#         env = Environment(A, B, L, R, t)
+#         env.trim()
+#         # env.save()
+#         environment_list.append(env)
     
-    return environment_list
+#     return environment_list
 
-def yield_environment_plots(environments):
-    # this technique is based on matplots basic tutorial
-    # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+# def yield_environment_plots(environments):
+#     # this technique is based on matplots basic tutorial
+#     # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
 
-    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template
-    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
-    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-    fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
-    for ax in axs.flat:
-        ax.set(xlabel='Time (t)', ylabel='Environmental variation (E)')
+#     fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template
+#     gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+#     axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+#     fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
+#     for ax in axs.flat:
+#         ax.set(xlabel='Time (t)', ylabel='Environmental variation (E)')
 
-    for i, env in enumerate(environments):
-        axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-        axs[i].legend()
-        # axs[i].set_ylim(0,1)
+#     for i, env in enumerate(environments):
+#         axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+#         axs[i].legend()
+#         # axs[i].set_ylim(0,1)
 
-    fig.savefig("Stacked Environments")
+#     fig.savefig("Stacked Environments")
 
-def yield_reaction_norms(environments,genotypes):
+# def yield_reaction_norms(environments,genotypes):
     
-    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
-    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
-    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-    fig.suptitle(u"Reaction Norms", fontsize = 30)
-    for ax in axs.flat:
-        ax.set(xlabel='Enviromental Variation (E)', ylabel='Response (I)')
+#     fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+#     gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+#     axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+#     fig.suptitle(u"Reaction Norms", fontsize = 30)
+#     for ax in axs.flat:
+#         ax.set(xlabel='Enviromental Variation (E)', ylabel='Response (I)')
 
-    for i, env in enumerate(environments):
+#     for i, env in enumerate(environments):
 
-        for name, params in genotypes.items():
-            I = reaction_norm(params["I0"], params["b"], env.variation)
-            axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-            axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+#         for name, params in genotypes.items():
+#             I = reaction_norm(params["I0"], params["b"], env.variation)
+#             axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+#             axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-    fig.savefig("Stacked Reaction Norms")
+#     fig.savefig("Stacked Reaction Norms")
 
-def yield_phenotypic_responses(environments, genotypes):
+# def yield_phenotypic_responses(environments, genotypes):
 
-    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
-    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
-    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-    fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
-    for ax in axs.flat:
-        ax.set(xlabel='Time (t)', ylabel='Response (I)')
+#     fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+#     gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+#     axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+#     fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
+#     for ax in axs.flat:
+#         ax.set(xlabel='Time (t)', ylabel='Response (I)')
 
-    for i, env in enumerate(environments):
+#     for i, env in enumerate(environments):
 
-        for name, params in genotypes.items():
-            I = reaction_norm(params["I0"], params["b"], env.variation)
-            axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-            axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+#         for name, params in genotypes.items():
+#             I = reaction_norm(params["I0"], params["b"], env.variation)
+#             axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+#             axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-    fig.savefig("Stacked Phenotypic Responses")
+#     fig.savefig("Stacked Phenotypic Responses")
 
-def yield_population_dynamics(environments,genotypes):
+# def yield_population_dynamics(environments,genotypes):
 
-    fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
-    gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
-    axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-    fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
-    for ax in axs.flat:
-        ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
+#     fig = plt.figure(figsize=(12, len(environments)*5)) # empty figure for template, dynamic height of plot
+#     gs = fig.add_gridspec(len(environments), hspace=0) # grid with dimensions & space between plots
+#     axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+#     fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
+#     for ax in axs.flat:
+#         ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
 
-    for i, env in enumerate(environments):
-        for initial_population in initial_populations:
-            for name, params in genotypes.items():
+#     for i, env in enumerate(environments):
+#         for initial_population in initial_populations:
+#             for name, params in genotypes.items():
 
-                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
-                axs[i].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
-                axs[i].set_yscale('log')
-                axs[i].set_ylim(1, 1e9) 
-                axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
-    fig.savefig("Stacked Population Dynamics")
+#                 X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+#                 axs[i].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
+#                 axs[i].set_yscale('log')
+#                 axs[i].set_ylim(1, 1e9) 
+#                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
+#     fig.savefig("Stacked Population Dynamics")
 
 def reaction_norm(I0, b, C):
     '''
@@ -324,12 +414,15 @@ initial_populations = [1e3]
 #endregion
 
 #region main simulations
-environments = yield_environments(environments_params)  # create several environments
-yield_environment_plots(environments) # multiplot for all environments
-yield_reaction_norms(environments,genotypes_params)
-yield_phenotypic_responses(environments, genotypes_params) # multiplot for phenotypic respones
-yield_population_dynamics(environments,genotypes_params) # multiplot for population dynamics
+# environments = yield_environments(environments_params)  # create several environments
+# yield_environment_plots(environments) # multiplot for all environments
+# yield_reaction_norms(environments,genotypes_params)
+# yield_phenotypic_responses(environments, genotypes_params) # multiplot for phenotypic respones
+# yield_population_dynamics(environments,genotypes_params) # multiplot for population dynamics
 #endregion
 
-
-
+simulator = Simulator(environments_params, genotypes_params)
+simulator.yield_environment_plots()
+simulator.yield_reaction_norms()
+simulator.yield_phenotypic_responses()
+simulator.yield_population_dynamics()
