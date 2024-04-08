@@ -157,7 +157,7 @@ class Simulator():
 
         for name, params in self.environment_params.items():
             A, B, L, R, t = params.values() # unpacking env parameters
-            env = Environment(A, B, L, R, t)
+            env = Environment(A, B, L, R, t) # create Environment Instance
             env.trim()
             # env.save()
             environment_list.append(env)
@@ -443,7 +443,35 @@ initial_populations = [1e3]
 #endregion
 
 #region main simulations
-simulator = Simulator(environments_params, genotypes_params)
-simulator.run()
+# simulator = Simulator(environments_params, genotypes_params)
+# simulator.run()
 #endregion
 
+Determistic = [0.3, 0.6, 0.9]
+Stochastic = [0.0,0.1]
+Lifespan = [10]
+RelativeVariation = [2]
+Timesteps = [110]
+
+# number of total envs will be A*B*L*R*t numbers of each parameter so be carefull!
+envs = {}
+counter = 0
+keys =["A", "B", "L", "R", "t"] # list of keys to irerate on dict creation
+for A in Determistic:
+    for B in Stochastic:
+        for L in Lifespan:
+            for R in RelativeVariation:
+                for t in Timesteps:
+                    counter += 1 # counter for dynamic name
+                    values = [A, B, L, R, t] # list the parameters to iterate on dict creation
+                    params = {keys[i]: values[i] for i in range(len(keys))} # parameters dict creation
+                    env = {} # create dict for environment
+                    env[f"Env {counter}"] = params # assign parameters dict to env dict
+                    print('env:',env)
+                    envs.update(env) # add env dict to envrironments dict
+print("envs", envs)
+
+print("env params", environments_params)
+
+simulator = Simulator(envs, genotypes_params)
+simulator.run()
