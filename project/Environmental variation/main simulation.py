@@ -219,11 +219,13 @@ class Simulator():
     def yield_reaction_norms(self):
         
         fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
-        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
-        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        gs = fig.add_gridspec(len(self.environments), hspace=0.1) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True,) # sharing the same y range (i think based on the bigger value)
+        axs[-1].set_xlabel('Environmental variation (E)') # put label only on the bottom plot
         fig.suptitle(u"Reaction Norms", fontsize = 30)
+        
         for ax in axs.flat:
-            ax.set(xlabel='Enviromental Variation (E)', ylabel='Response (I)')
+            ax.set(ylabel='Response (I)')
 
         for i, env in enumerate(self.environments):
 
@@ -387,7 +389,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 # ╔══════════════════════════════════════════════════╗
 # ║                  Parameters                      ║
 # ╚══════════════════════════════════════════════════╝
-#region Environment
+#region
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
 environments_params = {
@@ -395,18 +397,15 @@ environments_params = {
     "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
     "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
     "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 }
-#endregion
-#region Genotypes
+
 genotypes_params = {
     "Genotype 1": {"I0": 0.2, "b": 0.8},
     "Genotype 2": {"I0": 0.4, "b":0.6},
     "Genotype 3": {"I0": 0.6, "b": 0.4},
     "Genotype 4": {"I0": 0.8, "b": 0.2}
 }
-#endregion
-#region Antibiotic Response Curve
 
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
