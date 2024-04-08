@@ -33,7 +33,8 @@ class Environment():
         self.trimmed = False # flag for trimming to put in the plot's title
 
         # yield variation
-        self.variation = self.A * np.sin(2 * np.pi * self.t / (self.L * self.R)) + self.B * self.epsilon
+        self.variation = environmental_variation(self.A, self.B, self.t, self.L, self.R, self.epsilon)
+        # self.variation = self.A * np.sin(2 * np.pi * self.t / (self.L * self.R)) + self.B * self.epsilon
         # construct plot and immediately unpack
         self.fig, self.ax = self._create_plot()    
         
@@ -194,7 +195,7 @@ class Simulator():
         # plt.subplots_adjust()
         # fig.tight_layout()
         # fig.savefig('Report', dpi=600, bbox_inches='tight') # dpi for a better resolution, bboxinches for trimming margins
-        save('./report/report')
+        save('./report/report', dpi=600)
 
     def yield_environment_plots(self):
         # this technique is based on matplots basic tutorial
@@ -279,7 +280,6 @@ class Simulator():
         save('./report/Stacked Population Dynamics')
         return fig
     
-
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -294,7 +294,8 @@ def fig2img(fig):
     img = Image.open(buf) 
     return img 
 
-def save(path, ext='png', close=True, verbose=True):
+def save(path, ext='png', close=True, verbose=True, **kwargs):
+    # https://gist.github.com/jhamrick/5320734
     """Save a figure from pyplot.
     Parameters
     ----------
@@ -332,7 +333,7 @@ def save(path, ext='png', close=True, verbose=True):
         print("Saving figure to '%s'..." % savepath),
 
     # Actually save the figure
-    plt.savefig(savepath)
+    plt.savefig(savepath, **kwargs)
     
     # Close it
     if close:
@@ -346,6 +347,9 @@ def save(path, ext='png', close=True, verbose=True):
 # ║                  Equations                       ║
 # ╚══════════════════════════════════════════════════╝
 #region
+
+def environmental_variation(A, B, t, L, R, epsilon):
+    return A * np.sin(2 * np.pi * t / (L * R)) + B * epsilon
 
 def reaction_norm(I0, b, C):
     '''
@@ -395,9 +399,6 @@ environments_params = {
     "Env 2": {"A": 0.6, "B": 0.1, "L": 10, "R": 100, "t": 110},
     "Env 3": {"A": 0.9, "B": 0.1, "L": 10, "R": 100, "t": 110},
     # "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    # "Env 5": {"A": 1.0, "B": 0.2, "L": 10, "R": 100, "t": 110},
-    # "Env 7": {"A": 1.0, "B": 0.3, "L": 10, "R": 100, "t": 110},
-    # "Env 8": {"A": 1.0, "B": 0.4, "L": 10, "R": 100, "t": 110},
 }
 #endregion
 #region Genotypes
