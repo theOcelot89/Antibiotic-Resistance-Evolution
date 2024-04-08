@@ -204,7 +204,7 @@ class Simulator():
         fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template
         gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-        fig.suptitle(u"Environmental Variations E\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
+        fig.suptitle(u"Environmental Variations\nE\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
         for ax in axs.flat:
             ax.set(xlabel='Time (t)', ylabel='Environmental variation (E)')
 
@@ -222,7 +222,7 @@ class Simulator():
         gs = fig.add_gridspec(len(self.environments), hspace=0.1) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True,) # sharing the same y range (i think based on the bigger value)
         axs[-1].set_xlabel('Environmental variation (E)') # put label only on the bottom plot
-        fig.suptitle(u"Reaction Norms", fontsize = 30)
+        fig.suptitle(u"Reaction Norms\n I=I\u2080 + b·C", fontsize = 30)
         
         for ax in axs.flat:
             ax.set(ylabel='Response (I)')
@@ -233,6 +233,7 @@ class Simulator():
                 I = reaction_norm(params["I0"], params["b"], env.variation)
                 axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+                axs[i].grid(True)
 
         # save('./report/Stacked Reaction Norms')
         return fig
@@ -242,7 +243,7 @@ class Simulator():
         fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
         gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-        fig.suptitle(u"Phenotypic Responses To  Environmental Variations", fontsize = 30)
+        fig.suptitle(u"Phenotypic Responses\n I\u209C=I\u2080 + b·E\u209C", fontsize = 30)
         for ax in axs.flat:
             ax.set(xlabel='Time (t)', ylabel='Response (I)')
 
@@ -404,7 +405,8 @@ genotypes_params = {
     "Genotype 1": {"I0": 0.2, "b": 0.8},
     "Genotype 2": {"I0": 0.4, "b":0.6},
     "Genotype 3": {"I0": 0.6, "b": 0.4},
-    "Genotype 4": {"I0": 0.8, "b": 0.2}
+    "Genotype 4": {"I0": 0.8, "b": 0.2},
+    "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
 psi_min = -2 # maximum death rate
