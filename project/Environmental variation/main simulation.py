@@ -213,9 +213,7 @@ class Simulator():
             axs[i].legend()
             # axs[i].set_ylim(0,1)
 
-        # fig.savefig("Stacked Environments")
-        save('./report/Stacked Environments')
-
+        # save('./report/Stacked Environments')
         return fig
 
     def yield_reaction_norms(self):
@@ -234,8 +232,7 @@ class Simulator():
                 axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-        # fig.savefig("Stacked Reaction Norms")
-        save('./report/Stacked Reaction Norms')
+        # save('./report/Stacked Reaction Norms')
         return fig
     
     def yield_phenotypic_responses(self):
@@ -254,8 +251,7 @@ class Simulator():
                 axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-        # fig.savefig("Stacked Phenotypic Responses")
-        save('./report/Stacked Phenotypics Responses')
+        # save('./report/Stacked Phenotypics Responses')
         return fig
     
     def yield_population_dynamics(self):
@@ -276,8 +272,8 @@ class Simulator():
                     axs[i].set_yscale('log')
                     axs[i].set_ylim(1, 1e9) 
                     axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
-        # fig.savefig("Stacked Population Dynamics")
-        save('./report/Stacked Population Dynamics')
+
+        # save('./report/Stacked Population Dynamics')
         return fig
     
 #endregion
@@ -398,16 +394,16 @@ environments_params = {
     "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
     "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
     "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    # "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
+    "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 }
 #endregion
 #region Genotypes
 genotypes_params = {
-    "Genotype 1": {"I0": 0, "b": 0.5},
-    "Genotype 2": {"I0": 0, "b":1},
-    "Genotype 3": {"I0": 0.5, "b": 0},
-    "Genotype 4": {"I0": 0.3, "b": 0.5},
-    
+    "Genotype 1": {"I0": 0.2, "b": 0.8},
+    "Genotype 2": {"I0": 0.4, "b":0.6},
+    "Genotype 3": {"I0": 0.6, "b": 0.4},
+    "Genotype 4": {"I0": 0.8, "b": 0.2}
 }
 #endregion
 #region Antibiotic Response Curve
@@ -417,7 +413,7 @@ zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
-time_frame = np.linspace(0, 10, 10) #should be passed on odeint()
+time_frame = np.linspace(0, 10, 11) #should be passed on odeint()
 initial_populations = [1e3]
 
 #endregion
