@@ -395,9 +395,9 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
 environments_params = {
-    "Env 1": {"A": 0.3, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    "Env 2": {"A": 0.6, "B": 0.1, "L": 10, "R": 100, "t": 110},
-    "Env 3": {"A": 0.9, "B": 0.1, "L": 10, "R": 100, "t": 110},
+    "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
     # "Env 4": {"A": 1.0, "B": 0.1, "L": 10, "R": 100, "t": 110},
 }
 #endregion
