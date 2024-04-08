@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import io 
+import os
 from PIL import Image 
 #endregion
 
@@ -192,8 +193,9 @@ class Simulator():
 
         # plt.subplots_adjust()
         # fig.tight_layout()
-        fig.savefig('Report', dpi=600, bbox_inches='tight') # dpi for a better resolution, bboxinches for trimming margins
-        
+        # fig.savefig('Report', dpi=600, bbox_inches='tight') # dpi for a better resolution, bboxinches for trimming margins
+        save('./report/report')
+
     def yield_environment_plots(self):
         # this technique is based on matplots basic tutorial
         # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
@@ -210,7 +212,9 @@ class Simulator():
             axs[i].legend()
             # axs[i].set_ylim(0,1)
 
-        fig.savefig("Stacked Environments")
+        # fig.savefig("Stacked Environments")
+        save('./report/Stacked Environments')
+
         return fig
 
     def yield_reaction_norms(self):
@@ -229,7 +233,8 @@ class Simulator():
                 axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-        fig.savefig("Stacked Reaction Norms")
+        # fig.savefig("Stacked Reaction Norms")
+        save('./report/Stacked Reaction Norms')
         return fig
     
     def yield_phenotypic_responses(self):
@@ -248,7 +253,8 @@ class Simulator():
                 axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-        fig.savefig("Stacked Phenotypic Responses")
+        # fig.savefig("Stacked Phenotypic Responses")
+        save('./report/Stacked Phenotypics Responses')
         return fig
     
     def yield_population_dynamics(self):
@@ -269,7 +275,8 @@ class Simulator():
                     axs[i].set_yscale('log')
                     axs[i].set_ylim(1, 1e9) 
                     axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
-        fig.savefig("Stacked Population Dynamics")
+        # fig.savefig("Stacked Population Dynamics")
+        save('./report/Stacked Population Dynamics')
         return fig
     
 
@@ -321,6 +328,53 @@ def fig2img(fig):
     buf.seek(0) 
     img = Image.open(buf) 
     return img 
+
+def save(path, ext='png', close=True, verbose=True):
+    """Save a figure from pyplot.
+    Parameters
+    ----------
+    path : string
+        The path (and filename, without the extension) to save the
+        figure to.
+    ext : string (default='png')
+        The file extension. This must be supported by the active
+        matplotlib backend (see matplotlib.backends module).  Most
+        backends support 'png', 'pdf', 'ps', 'eps', and 'svg'.
+    close : boolean (default=True)
+        Whether to close the figure after saving.  If you want to save
+        the figure multiple times (e.g., to multiple formats), you
+        should NOT close it in between saves or you will have to
+        re-plot it.
+    verbose : boolean (default=True)
+        Whether to print information about when and where the image
+        has been saved.
+    """
+    
+    # Extract the directory and filename from the given path
+    directory = os.path.split(path)[0]
+    filename = "%s.%s" % (os.path.split(path)[1], ext)
+    if directory == '':
+        directory = '.'
+
+    # If the directory does not exist, create it
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # The final path to save to
+    savepath = os.path.join(directory, filename)
+
+    if verbose:
+        print("Saving figure to '%s'..." % savepath),
+
+    # Actually save the figure
+    plt.savefig(savepath)
+    
+    # Close it
+    if close:
+        plt.close()
+
+    if verbose:
+        print("Done")
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
