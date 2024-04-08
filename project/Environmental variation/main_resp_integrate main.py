@@ -283,44 +283,9 @@ class Simulator():
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
-# ║                  Functions                       ║
+# ║                    Tools                         ║
 # ╚══════════════════════════════════════════════════╝
 #region
-
-def reaction_norm(I0, b, C):
-    '''
-    Estimation of individuals' phenotypic reaction to environmental variation 
-    I0 = baseline amount, b = degree of plasticity, C = environmental cue
-    https://doi.org/10.1073/pnas.1408589111
-    '''
-
-    return I0 + b * C
-
-def psi(a, psi_max, psi_min, zMIC, k):
-    '''
-    Effect of antibiotic on bacterial growth
-    a = concentration of antibiotic, psiMax = max growth rate, psiMin = max decline rate
-    zMIC = Minimun Inhibitory Concentration, k = steepness of the antibiotic response curve
-    https://doi.org/10.1371/journal.pcbi.1011364
-    '''
-
-    term = (a / zMIC)**k
-    return psi_max - ((psi_max - psi_min) * term) / (term + 1)
-
-def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
-    '''function in which growth rate is calculated depending on the environmental conditions'''
-
-    # decide in which timestep(e.g day) to quit the administration of antibiotic
-    if t > 5: 
-        a_t = 3 # antibiotic concentration
-    else:
-        a_t = 0
-    
-    current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
-    growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
-    growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, psi_min, zMIC, k) * X
-
-    return max(growth_rate, -X / 0.04)
 
 def fig2img(fig): 
     buf = io.BytesIO() 
@@ -378,6 +343,48 @@ def save(path, ext='png', close=True, verbose=True):
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
+# ║                  Equations                       ║
+# ╚══════════════════════════════════════════════════╝
+#region
+
+def reaction_norm(I0, b, C):
+    '''
+    Estimation of individuals' phenotypic reaction to environmental variation 
+    I0 = baseline amount, b = degree of plasticity, C = environmental cue
+    https://doi.org/10.1073/pnas.1408589111
+    '''
+
+    return I0 + b * C
+
+def psi(a, psi_max, psi_min, zMIC, k):
+    '''
+    Effect of antibiotic on bacterial growth
+    a = concentration of antibiotic, psiMax = max growth rate, psiMin = max decline rate
+    zMIC = Minimun Inhibitory Concentration, k = steepness of the antibiotic response curve
+    https://doi.org/10.1371/journal.pcbi.1011364
+    '''
+
+    term = (a / zMIC)**k
+    return psi_max - ((psi_max - psi_min) * term) / (term + 1)
+
+def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
+    '''function in which growth rate is calculated depending on the environmental conditions'''
+
+    # decide in which timestep(e.g day) to quit the administration of antibiotic
+    if t > 5: 
+        a_t = 3 # antibiotic concentration
+    else:
+        a_t = 0
+    
+    current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
+    growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
+    growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, psi_min, zMIC, k) * X
+
+    return max(growth_rate, -X / 0.04)
+
+#endregion
+
+# ╔══════════════════════════════════════════════════╗
 # ║                  Parameters                      ║
 # ╚══════════════════════════════════════════════════╝
 #region Environment
@@ -393,7 +400,6 @@ environments_params = {
     # "Env 8": {"A": 1.0, "B": 0.4, "L": 10, "R": 100, "t": 110},
 }
 #endregion
-
 #region Genotypes
 genotypes_params = {
     "Genotype 1": {"I0": 0, "b": 0.5},
@@ -403,7 +409,6 @@ genotypes_params = {
     
 }
 #endregion
-
 #region Antibiotic Response Curve
 
 psi_min = -2 # maximum death rate
