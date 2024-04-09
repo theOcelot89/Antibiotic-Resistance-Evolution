@@ -195,14 +195,22 @@ class Simulator():
         plt.imshow(img4)
         plt.axis('off')
 
-        # plt.subplots_adjust()
-        # fig.tight_layout()
         # fig.savefig('Report', dpi=600, bbox_inches='tight') # dpi for a better resolution, bboxinches for trimming margins
         save('./report/report', dpi=600)
 
     def yield_environment_plots(self):
         # this technique is based on matplots basic tutorial
         # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+        
+        A_list, R_list = [], []
+        for env in self.environments:  
+            A_list.append(env.A)
+            R_list.append(env.R)
+        print(A_list)
+        print(R_list)
+        print(len(set(A_list)))
+        print(len(set(R_list)))
+        exit()
 
         # code will not work with one plot, so i put this condition
         if len(self.environments) == 0 or len(self.environments) == 1:
@@ -221,7 +229,7 @@ class Simulator():
             axs[i].legend()
             # axs[i].set_ylim(0,1)
 
-        # save('./report/Stacked Environments')
+        save('./report/Stacked Environments')
         print("environment plots DONE")
         return fig
 
@@ -246,7 +254,7 @@ class Simulator():
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
                 axs[i].grid(True)
 
-        # save('./report/Stacked Reaction Norms')
+        save('./report/Stacked Reaction Norms')
         print("reaction norms DONE")
         return fig
     
@@ -266,7 +274,7 @@ class Simulator():
                 axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-        # save('./report/Stacked Phenotypics Responses')
+        save('./report/Stacked Phenotypics Responses')
         print("phenotypics responses DONE")
         return fig
     
@@ -289,7 +297,7 @@ class Simulator():
                     axs[i].set_ylim(1, 1e9) 
                     axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
 
-        # save('./report/Stacked Population Dynamics')
+        save('./report/Stacked Population Dynamics')
         print("population dynamics DONE")
         return fig
     
@@ -488,7 +496,8 @@ initial_populations = [1e3]
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
-simulator.run()
+# simulator.run()
+simulator.yield_environment_plots()
 #endregion
 
 
