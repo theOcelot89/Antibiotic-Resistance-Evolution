@@ -176,9 +176,9 @@ class Simulator():
         # print(self.norms_plot.get_size_inches())  #dynamically set width/height from the dimensions of the plots
 
         img1 = fig2img(self.dynamics_plot)
-        img2 = fig2img(self.envs_plot)
-        img3 = fig2img(self.responses_plot)
-        img4 = fig2img(self.norms_plot)
+        img2 = fig2img(self.responses_plot)
+        img3 = fig2img(self.norms_plot)
+        img4 = fig2img(self.envs_plot)
 
         fig = plt.figure(figsize=(20,7), layout="compressed")
 
@@ -213,8 +213,8 @@ class Simulator():
         gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
         fig.suptitle(u"Environmental Variations\nE\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
-        for ax in axs.flat:
-            ax.set(xlabel='Time (t)', ylabel='Environmental variation (E)')
+        fig.text(0.5, 0.07, "Time (t)",   fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Environmental variation (E)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
         for i, env in enumerate(self.environments):
             axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
@@ -230,11 +230,15 @@ class Simulator():
         fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
         gs = fig.add_gridspec(len(self.environments), hspace=0.1) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True,) # sharing the same y range (i think based on the bigger value)
-        axs[-1].set_xlabel('Environmental variation (E)') # put label only on the bottom plot
+        # axs[-1].set_xlabel('Environmental variation (E)', fontsize = 20) # put x label only on the bottom plot
+        fig.text(0.35, 0.07, "Environmental variation (E)",   fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
+
+
         fig.suptitle(u"Reaction Norms\n I=I\u2080 + b·C", fontsize = 30)
         
-        for ax in axs.flat:
-            ax.set(ylabel='Response (I)')
+        # for ax in axs.flat:
+        #     ax.set(ylabel='Response (I)')
 
         for i, env in enumerate(self.environments):
 
@@ -254,11 +258,11 @@ class Simulator():
         gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
         fig.suptitle(u"Phenotypic Responses\n I\u209C=I\u2080 + b·E\u209C", fontsize = 30)
-        for ax in axs.flat:
-            ax.set(xlabel='Time (t)', ylabel='Response (I)')
+        fig.text(0.5, 0.07, "Time (t)",   fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
         for i, env in enumerate(self.environments):
-
+            axs[i].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
             for name, params in self.genotypes.items():
                 I = reaction_norm(params["I0"], params["b"], env.variation)
                 axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
@@ -274,8 +278,8 @@ class Simulator():
         gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
         fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
-        for ax in axs.flat:
-            ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
+        fig.text(0.5, 0.07, "Time (t)",   fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Bacterial density", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
         for i, env in enumerate(self.environments):
             for initial_population in initial_populations:
@@ -435,9 +439,9 @@ environments_params = {
 }
 
 determistic = [0.3,0.6, 0.9]
-stochastic = [0.0,0.1]
+stochastic = [0.0]
 lifespan = [10]
-relativeVariation = [2]
+relativeVariation = [2,4]
 timesteps = [110]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
