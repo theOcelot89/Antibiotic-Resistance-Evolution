@@ -39,7 +39,7 @@ class Environment():
         self.fig, self.ax = self._create_plot()    
         
         
-        print(f"New environment created!")
+        print(f"New environment created!, params: A={self.A}, B={self.B}, L={self.L}, R={self.R}, t={len(self.t)} ")
 
     def _create_plot(self):
             
@@ -141,8 +141,11 @@ class Simulator():
         self.genotypes = genotype_params
 
         self.environments = self._yield_environments() # immediatly create environments
+        print(f"simulator contains {len(self.environments)} environments & {len(self.genotypes)} genotypes.")
     
     def run(self):
+
+        print("Simulation begins...")
 
         self.envs_plot = self.yield_environment_plots()
         self.norms_plot = self.yield_reaction_norms()
@@ -201,6 +204,11 @@ class Simulator():
         # this technique is based on matplots basic tutorial
         # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
 
+        # code will not work with one plot, so i put this condition
+        if len(self.environments) == 0 or len(self.environments) == 1:
+            print("please provide more than 1 environment")
+            exit()
+
         fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template
         gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
@@ -214,6 +222,7 @@ class Simulator():
             # axs[i].set_ylim(0,1)
 
         # save('./report/Stacked Environments')
+        print("environment plots DONE")
         return fig
 
     def yield_reaction_norms(self):
@@ -236,6 +245,7 @@ class Simulator():
                 axs[i].grid(True)
 
         # save('./report/Stacked Reaction Norms')
+        print("reaction norms DONE")
         return fig
     
     def yield_phenotypic_responses(self):
@@ -255,6 +265,7 @@ class Simulator():
                 axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
         # save('./report/Stacked Phenotypics Responses')
+        print("phenotypics responses DONE")
         return fig
     
     def yield_population_dynamics(self):
@@ -277,6 +288,7 @@ class Simulator():
                     axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
 
         # save('./report/Stacked Population Dynamics')
+        print("population dynamics DONE")
         return fig
     
 #endregion
@@ -340,6 +352,27 @@ def save(path, ext='png', close=True, verbose=True, **kwargs):
 
     if verbose:
         print("Done")
+
+def construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps):
+
+    # number of total envs will be A*B*L*R*t numbers of each parameter so be carefull!
+    envs = {}
+    counter = 0
+    keys =["A", "B", "L", "R", "t"] # list of keys to irerate on dict creation
+    for A in determistic:
+        for B in stochastic:
+            for L in lifespan:
+                for R in relativeVariation:
+                    for t in timesteps:
+                        counter += 1 # counter for dynamic env name
+                        values = [A, B, L, R, t] # list the parameters to iterate on dict creation
+                        params = {keys[i]: values[i] for i in range(len(keys))} # parameters dict creation
+                        env = {} # create dict for environment
+                        env[f"Env {counter}"] = params # assign parameters dict to env dict
+                        envs.update(env) # add env dict to envrironments dict
+    # for key, value in envs.items():
+    #     print(key,value)
+    return envs
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -394,12 +427,21 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
 environments_params = {
-    "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
     # "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 }
+
+determistic = [0.3,0.6, 0.9]
+stochastic = [0.0,0.1]
+lifespan = [10]
+relativeVariation = [2]
+timesteps = [110]
+
+environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
+
 
 genotypes_params = {
     "Genotype 1": {"I0": 0.2, "b": 0.8},
@@ -443,35 +485,12 @@ initial_populations = [1e3]
 #endregion
 
 #region main simulations
-# simulator = Simulator(environments_params, genotypes_params)
-# simulator.run()
+simulator = Simulator(environments_params, genotypes_params)
+simulator.run()
 #endregion
 
-Determistic = [0.3, 0.6, 0.9]
-Stochastic = [0.0,0.1]
-Lifespan = [10]
-RelativeVariation = [2]
-Timesteps = [110]
 
-# number of total envs will be A*B*L*R*t numbers of each parameter so be carefull!
-envs = {}
-counter = 0
-keys =["A", "B", "L", "R", "t"] # list of keys to irerate on dict creation
-for A in Determistic:
-    for B in Stochastic:
-        for L in Lifespan:
-            for R in RelativeVariation:
-                for t in Timesteps:
-                    counter += 1 # counter for dynamic name
-                    values = [A, B, L, R, t] # list the parameters to iterate on dict creation
-                    params = {keys[i]: values[i] for i in range(len(keys))} # parameters dict creation
-                    env = {} # create dict for environment
-                    env[f"Env {counter}"] = params # assign parameters dict to env dict
-                    print('env:',env)
-                    envs.update(env) # add env dict to envrironments dict
-print("envs", envs)
 
-print("env params", environments_params)
 
-simulator = Simulator(envs, genotypes_params)
-simulator.run()
+
+
