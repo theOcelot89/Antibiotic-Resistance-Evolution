@@ -273,9 +273,6 @@ class Simulator():
         fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
         fig.suptitle(u"Reaction Norms\n I=I\u2080 + b·C", fontsize = 30, y= 0.95)
         
-        # for ax in axs.flat:
-        #     ax.set(ylabel='Response (I)')
-
         for i, env in enumerate(self.environments):
 
             for name, params in self.genotypes.items():
@@ -289,20 +286,35 @@ class Simulator():
         return fig
     
     def yield_phenotypic_responses(self):
+        
+        row_vectors, rows, columns = self._plot_layer_constructor()
 
-        fig = plt.figure(figsize=(12, len(self.environments)*6)) # empty figure for template, dynamic height of plot
-        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
         fig.suptitle(u"Phenotypic Responses\n I\u209C=I\u2080 + b·E\u209C", fontsize = 30, y= 0.95)
         fig.text(0.5, 0.07, "Time (t)",   fontsize=20) # put only 1 x label
         fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
-        for i, env in enumerate(self.environments):
-            axs[i].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
-            for name, params in self.genotypes.items():
-                I = reaction_norm(params["I0"], params["b"], env.variation)
-                axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+        for row, vector in enumerate(row_vectors):
+            for column, env in enumerate(vector):
+                axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+                    for name, params in self.genotypes.items():
+                        I = reaction_norm(params["I0"], params["b"], env.variation)
+                        axs[row,column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                        axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+                else:
+                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
+                        for name, params in self.genotypes.items():
+                            I = reaction_norm(params["I0"], params["b"], env.variation)
+                            axs[row].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                            axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                            
+                    else:
+                        for name, params in self.genotypes.items():
+                            I = reaction_norm(params["I0"], params["b"], env.variation)
+                            axs[column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                            axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                        
 
         save('./report/Stacked Phenotypics Responses')
         print("phenotypics responses DONE")
@@ -528,6 +540,7 @@ initial_populations = [1e3]
 simulator = Simulator(environments_params, genotypes_params)
 # simulator.run()
 simulator.yield_environment_plots()
+simulator.yield_phenotypic_responses()
 #endregion
 
 
