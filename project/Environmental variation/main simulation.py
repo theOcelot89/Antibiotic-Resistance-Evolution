@@ -142,6 +142,11 @@ class Simulator():
 
         self.environments = self._yield_environments() # immediatly create environments
         print(f"simulator contains {len(self.environments)} environments & {len(self.genotypes)} genotypes.")
+
+         # code will not work with one environment, so i put this condition
+        if len(self.environments) == 0 or len(self.environments) == 1:
+            print("please provide more than 1 environment")
+            exit()
     
     def run(self):
 
@@ -167,6 +172,33 @@ class Simulator():
         
         return environment_list
 
+    def _plot_layer_constructor(self):
+        # here i make a method of constructing layers of plots based on a parameter of interest (here is A)
+        # the different values of the parameter of interest become layers and all the other plots in the layer are scheduled based on 
+        # on these layers (hierarchy on the other axis is based on the line of the environments that are feeded and this 
+        # functionality is created internally - i didnt code for this)
+        # IMPORTANT!!! rows here is just a name convension. The code for plotting the layers horizontally/vertically
+        # is based on how you pass row/columns in add_gridspec() and axs[i,j] OR axs[j,i]
+        # you have to reverse these parameters in order to change direction of plotting.
+        A_list  = []  
+        for env in self.environments:  
+            A_list.append(env.A)
+
+        # here i construct row vectors (which means i ll plot in row layers)
+        row_vectors = [] # stack of rows
+        for A in sorted(set(A_list)): # sorted set of unique values of A
+            row_vector = [] # construct a row vector for every unique A variable 
+            for env in self.environments:
+                if A == env.A:
+                    row_vector.append(env) # append to the row vector every env that has the A parameter
+            row_vectors.append(row_vector)
+
+        # based on the number of rows and the length of a row i create dimensions to pass on the add_gridspec()
+        rows = len(row_vectors) # turn rows of vectors into rows
+        columns = len(row_vectors[0]) # turn length of a row vector into columns
+
+        return row_vectors, rows, columns
+    
     def _generate_report(self):
         # ok that was a touch one & a number of steps & guides have to be considered in order for a nice report sheet
         # 1. convert figures to images (that is the only way to combine them) https://www.geeksforgeeks.org/saving-a-plot-as-an-image-in-python/
@@ -202,33 +234,7 @@ class Simulator():
         # this technique is based on matplots basic tutorial
         # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
         
-
-        # here i make a method of constructing layers of plots based on a parameter of interest (here is A)
-        # the different values of the parameter of interest become layers and all the other plots are scheduled based on 
-        # on these layers (hierarchy on the other axis is based on the line of the environments that is feeded and this 
-        # functionality is created internally - i didnt code for this)
-        A_list  = []  
-        for env in self.environments:  
-            A_list.append(env.A)
-            # R_list.append(env.R)
-
-        # here i construct row vectors (which means i ll plot in row layers)
-        row_vectors = [] # stack of rows
-        for A in set(A_list): # set of unique values of A
-            row_vector = [] # construct a row vector for every unique A variable 
-            for env in self.environments:
-                if A == env.A:
-                    row_vector.append(env)
-            row_vectors.append(row_vector)
-
-        # based on the number of rows and the length of a row i create dimensions to pass on the add_gridspec()
-        rows = len(row_vectors) # turn rows of vectors into rows
-        columns = len(row_vectors[0]) # turn length of a row vector into columns
-        
-        # code will not work with one plot, so i put this condition
-        if len(self.environments) == 0 or len(self.environments) == 1:
-            print("please provide more than 1 environment")
-            exit()
+        row_vectors, rows, columns = self._plot_layer_constructor()
 
         fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
         gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
@@ -237,21 +243,21 @@ class Simulator():
         fig.text(0.5, 0.07, "Time (t)", va="center",  fontsize=20) # put only 1 x label
         fig.text(0.05, 0.5, "Environmental variation (E)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
-        for i, vector in enumerate(row_vectors): # iterate on the stack of rows
-            for j, env in enumerate(vector): # iterate on the row itself
+        for row, vector in enumerate(row_vectors): # iterate on the stack of rows
+            for column, env in enumerate(vector): # iterate on the row itself
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                    axs[i,j].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-                    axs[i,j].legend()
-                    axs[i,j].set_ylim(0,1)
+                    axs[row,column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+                    axs[row,column].legend()
+                    axs[row,column].set_ylim(0,1)
                 else:   # if not, it has one dimension
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                        axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-                        axs[i].legend()
-                        axs[i].set_ylim(0,1)
+                        axs[row].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+                        axs[row].legend()
+                        axs[row].set_ylim(0,1)
                     else:               # else another parameter has variation     
-                        axs[j].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-                        axs[j].legend()
-                        axs[j].set_ylim(0,1)
+                        axs[column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+                        axs[column].legend()
+                        axs[column].set_ylim(0,1)
 
         save('./report/Stacked Environments')
         print("environment plots DONE")
@@ -468,10 +474,10 @@ environments_params = {
     # "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 }
 
-determistic = [0.3,0.6]
-stochastic = [0.0,0.1]
+determistic = [0.3, 0.6, 0.9]
+stochastic = [0.0]
 lifespan = [10]
-relativeVariation = [2,4]
+relativeVariation = [2,4,6]
 timesteps = [110]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
