@@ -248,15 +248,25 @@ class Simulator():
                     axs[row,column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
                     axs[row,column].legend()
                     axs[row,column].set_ylim(0,1)
+                    axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
+                    axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+
                 else:   # if not, it has one dimension
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
                         axs[row].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
                         axs[row].legend()
                         axs[row].set_ylim(0,1)
+                        axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
+                        axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+
                     else:               # else another parameter has variation     
                         axs[column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
                         axs[column].legend()
                         axs[column].set_ylim(0,1)
+                        axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
+                        axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+
+
 
         save('./report/Stacked Environments')
         print("environment plots DONE")
@@ -357,6 +367,8 @@ class Simulator():
                             axs[row,column].set_yscale('log')
                             axs[row,column].set_ylim(1, 1e9) 
                             axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}") 
+                            axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
+                            axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                            
                 else:
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
                         for initial_population in initial_populations:
@@ -366,6 +378,9 @@ class Simulator():
                                 axs[row].set_yscale('log')
                                 axs[row].set_ylim(1, 1e9) 
                                 axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                           
+                                axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
+                                axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
+                    
                     else:   # else another parameter has variation 
                          for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
@@ -375,7 +390,9 @@ class Simulator():
                                 axs[column].set_yscale('log')
                                 axs[column].set_ylim(1, 1e9) 
                                 axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
-
+                                axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
+                                axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+        
         save('./report/Stacked Population Dynamics')
         print("population dynamics DONE")
         return fig
@@ -515,18 +532,18 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 #region
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
-environments_params = {
-    # "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    # "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    # "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    # "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    # "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
-}
+# environments_params = {
+#     "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
+#     "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
+#     "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
+#     "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
+#     "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
+# }
 
-determistic = [0.3,0.6,0.9]
-stochastic = [0.0]
+determistic = [0.3, 0.6, 0.9]
+stochastic = [0.0, 0.1]
 lifespan = [10]
-relativeVariation = [2,4,6]
+relativeVariation = [2,4]
 timesteps = [110]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
@@ -575,11 +592,11 @@ initial_populations = [1e3]
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
-# simulator.yield_environment_plots()
-# simulator.yield_phenotypic_responses()
-# simulator.yield_reaction_norms()
-# simulator.yield_population_dynamics()
-simulator.run()
+simulator.yield_environment_plots()
+simulator.yield_phenotypic_responses()
+simulator.yield_reaction_norms()
+simulator.yield_population_dynamics()
+# simulator.run()
 #endregion
 
 
