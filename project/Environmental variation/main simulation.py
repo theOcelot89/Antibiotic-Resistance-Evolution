@@ -39,7 +39,7 @@ class Environment():
         self.fig, self.ax = self._create_plot()    
         
         
-        print(f"New environment created!")
+        print(f"New environment created!, params: A={self.A}, B={self.B}, L={self.L}, R={self.R}, t={len(self.t)} ")
 
     def _create_plot(self):
             
@@ -141,8 +141,16 @@ class Simulator():
         self.genotypes = genotype_params
 
         self.environments = self._yield_environments() # immediatly create environments
+        print(f"simulator contains {len(self.environments)} environments & {len(self.genotypes)} genotypes.")
+
+         # code will not work with one environment, so i put this condition
+        if len(self.environments) == 0 or len(self.environments) == 1:
+            print("please provide more than 1 environment")
+            exit()
     
     def run(self):
+
+        print("Simulation begins...")
 
         self.envs_plot = self.yield_environment_plots()
         self.norms_plot = self.yield_reaction_norms()
@@ -157,13 +165,40 @@ class Simulator():
 
         for name, params in self.environment_params.items():
             A, B, L, R, t = params.values() # unpacking env parameters
-            env = Environment(A, B, L, R, t)
+            env = Environment(A, B, L, R, t) # create Environment Instance
             env.trim()
             # env.save()
             environment_list.append(env)
         
         return environment_list
 
+    def _plot_layer_constructor(self):
+        # here i make a method of constructing layers of plots based on a parameter of interest (here is A)
+        # the different values of the parameter of interest become layers and all the other plots in the layer are scheduled based on 
+        # on these layers (hierarchy on the other axis is based on the line of the environments that are feeded and this 
+        # functionality is created internally - i didnt code for this)
+        # IMPORTANT!!! rows here is just a name convension. The code for plotting the layers horizontally/vertically
+        # is based on how you pass row/columns in add_gridspec() and axs[i,j] OR axs[j,i]
+        # you have to reverse these parameters in order to change direction of plotting.
+        A_list  = []  
+        for env in self.environments:  
+            A_list.append(env.A)
+
+        # here i construct row vectors (which means i ll plot in row layers)
+        row_vectors = [] # stack of rows
+        for A in sorted(set(A_list)): # sorted set of unique values of A
+            row_vector = [] # construct a row vector for every unique A variable 
+            for env in self.environments:
+                if A == env.A:
+                    row_vector.append(env) # append to the row vector every env that has the A parameter
+            row_vectors.append(row_vector)
+
+        # based on the number of rows and the length of a row i create dimensions to pass on the add_gridspec()
+        rows = len(row_vectors) # turn rows of vectors into rows
+        columns = len(row_vectors[0]) # turn length of a row vector into columns
+
+        return row_vectors, rows, columns
+    
     def _generate_report(self):
         # ok that was a touch one & a number of steps & guides have to be considered in order for a nice report sheet
         # 1. convert figures to images (that is the only way to combine them) https://www.geeksforgeeks.org/saving-a-plot-as-an-image-in-python/
@@ -173,110 +208,176 @@ class Simulator():
         # print(self.norms_plot.get_size_inches())  #dynamically set width/height from the dimensions of the plots
 
         img1 = fig2img(self.dynamics_plot)
-        img2 = fig2img(self.envs_plot)
-        img3 = fig2img(self.responses_plot)
-        img4 = fig2img(self.norms_plot)
+        img2 = fig2img(self.responses_plot)
+        img3 = fig2img(self.norms_plot)
+        img4 = fig2img(self.envs_plot)
 
-        fig = plt.figure(figsize=(20,7), layout="compressed")
+        fig = plt.figure(layout="compressed")
 
-        fig.add_subplot(141)
+        fig.add_subplot(221)
         plt.imshow(img1)
         plt.axis('off') 
-        fig.add_subplot(142)
+        fig.add_subplot(222)
         plt.imshow(img2)
         plt.axis('off') 
-        fig.add_subplot(143)
+        fig.add_subplot(223)
         plt.imshow(img3)
         plt.axis('off') 
-        fig.add_subplot(144)
+        fig.add_subplot(224)
         plt.imshow(img4)
         plt.axis('off')
 
-        # plt.subplots_adjust()
-        # fig.tight_layout()
-        # fig.savefig('Report', dpi=600, bbox_inches='tight') # dpi for a better resolution, bboxinches for trimming margins
-        save('./report/report', dpi=600)
+        save('./report/report', dpi=1000)
 
     def yield_environment_plots(self):
         # this technique is based on matplots basic tutorial
         # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+        
+        row_vectors, rows, columns = self._plot_layer_constructor()
 
-        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template
-        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-        fig.suptitle(u"Environmental Variations\nE\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30)
-        for ax in axs.flat:
-            ax.set(xlabel='Time (t)', ylabel='Environmental variation (E)')
+        fig.suptitle(u"Environmental Variations\nE\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30, y= 0.95)
+        fig.text(0.5, 0.07, "Time (t)", va="center",  fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Environmental variation (E)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
-        for i, env in enumerate(self.environments):
-            axs[i].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-            axs[i].legend()
-            # axs[i].set_ylim(0,1)
+        for row, vector in enumerate(row_vectors): # iterate on the stack of rows
+            for column, env in enumerate(vector): # iterate on the row itself
+                if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+                    axs[row,column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+                    axs[row,column].legend()
+                    axs[row,column].set_ylim(0,1)
+                else:   # if not, it has one dimension
+                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
+                        axs[row].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+                        axs[row].legend()
+                        axs[row].set_ylim(0,1)
+                    else:               # else another parameter has variation     
+                        axs[column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
+                        axs[column].legend()
+                        axs[column].set_ylim(0,1)
 
-        # save('./report/Stacked Environments')
+        save('./report/Stacked Environments')
+        print("environment plots DONE")
         return fig
 
     def yield_reaction_norms(self):
+
+        row_vectors, rows, columns = self._plot_layer_constructor()       
         
-        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
-        gs = fig.add_gridspec(len(self.environments), hspace=0.1) # grid with dimensions & space between plots
-        axs = gs.subplots(sharey=True,) # sharing the same y range (i think based on the bigger value)
-        axs[-1].set_xlabel('Environmental variation (E)') # put label only on the bottom plot
-        fig.suptitle(u"Reaction Norms\n I=I\u2080 + b·C", fontsize = 30)
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0.1, wspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.text(0.35, 0.07, "Environmental variation (E)",   fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
+        fig.suptitle(u"Reaction Norms\n I=I\u2080 + b·C", fontsize = 30, y= 0.95)
         
-        for ax in axs.flat:
-            ax.set(ylabel='Response (I)')
+        for row, vector in enumerate(row_vectors):
+            for column, env in enumerate(vector):
+                if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+                    for name, params in self.genotypes.items():
+                        I = reaction_norm(params["I0"], params["b"], env.variation)
+                        axs[row,column].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                        axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+                else:
+                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
+                        for name, params in self.genotypes.items():
+                            I = reaction_norm(params["I0"], params["b"], env.variation)
+                            axs[row].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                            axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                            
+                    else:
+                        for name, params in self.genotypes.items():
+                            I = reaction_norm(params["I0"], params["b"], env.variation)
+                            axs[column].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                            axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                        
 
-        for i, env in enumerate(self.environments):
 
-            for name, params in self.genotypes.items():
-                I = reaction_norm(params["I0"], params["b"], env.variation)
-                axs[i].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
-                axs[i].grid(True)
-
-        # save('./report/Stacked Reaction Norms')
+        save('./report/Stacked Reaction Norms')
+        print("reaction norms DONE")
         return fig
     
     def yield_phenotypic_responses(self):
+        
+        row_vectors, rows, columns = self._plot_layer_constructor()
 
-        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
-        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-        fig.suptitle(u"Phenotypic Responses\n I\u209C=I\u2080 + b·E\u209C", fontsize = 30)
-        for ax in axs.flat:
-            ax.set(xlabel='Time (t)', ylabel='Response (I)')
+        fig.suptitle(u"Phenotypic Responses\n I\u209C=I\u2080 + b·E\u209C", fontsize = 30, y= 0.95)
+        fig.text(0.5, 0.07, "Time (t)",   fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
-        for i, env in enumerate(self.environments):
+        for row, vector in enumerate(row_vectors):
+            for column, env in enumerate(vector):
+                # axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+                    axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                    for name, params in self.genotypes.items():
+                        I = reaction_norm(params["I0"], params["b"], env.variation)
+                        axs[row,column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                        axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+                else:
+                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
+                        axs[row].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                        for name, params in self.genotypes.items():
+                            I = reaction_norm(params["I0"], params["b"], env.variation)
+                            axs[row].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                            axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                            
+                    else:
+                        axs[column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                        for name, params in self.genotypes.items():
+                            I = reaction_norm(params["I0"], params["b"], env.variation)
+                            axs[column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
+                            axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                        
 
-            for name, params in self.genotypes.items():
-                I = reaction_norm(params["I0"], params["b"], env.variation)
-                axs[i].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
-
-        # save('./report/Stacked Phenotypics Responses')
+        save('./report/Stacked Phenotypics Responses')
+        print("phenotypics responses DONE")
         return fig
     
     def yield_population_dynamics(self):
 
-        fig = plt.figure(figsize=(12, len(self.environments)*5)) # empty figure for template, dynamic height of plot
-        gs = fig.add_gridspec(len(self.environments), hspace=0) # grid with dimensions & space between plots
+        row_vectors, rows, columns = self._plot_layer_constructor()
+
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-        fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20)
-        for ax in axs.flat:
-            ax.set(xlabel='Time (t)', ylabel='Bacterial Density')
+        fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20, y= 0.95)
+        fig.text(0.5, 0.07, "Time (t)", fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Bacterial density", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
-        for i, env in enumerate(self.environments):
-            for initial_population in initial_populations:
-                for name, params in self.genotypes.items():
+        for row, vector in enumerate(row_vectors):
+            for column, env in enumerate(vector):
+                if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+                    for initial_population in initial_populations:
+                        for name, params in self.genotypes.items():
 
-                    X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
-                    axs[i].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
-                    axs[i].set_yscale('log')
-                    axs[i].set_ylim(1, 1e9) 
-                    axs[i].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
+                            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+                            axs[row,column].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
+                            axs[row,column].set_yscale('log')
+                            axs[row,column].set_ylim(1, 1e9) 
+                            axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}") 
+                else:
+                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
+                        for initial_population in initial_populations:
+                            for name, params in self.genotypes.items():
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+                                axs[row].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
+                                axs[row].set_yscale('log')
+                                axs[row].set_ylim(1, 1e9) 
+                                axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                           
+                    else:   # else another parameter has variation 
+                         for initial_population in initial_populations:
+                            for name, params in self.genotypes.items():
 
-        # save('./report/Stacked Population Dynamics')
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+                                axs[column].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
+                                axs[column].set_yscale('log')
+                                axs[column].set_ylim(1, 1e9) 
+                                axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
+
+        save('./report/Stacked Population Dynamics')
+        print("population dynamics DONE")
         return fig
     
 #endregion
@@ -340,6 +441,27 @@ def save(path, ext='png', close=True, verbose=True, **kwargs):
 
     if verbose:
         print("Done")
+
+def construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps):
+
+    # number of total envs will be A*B*L*R*t of different parameter so be carefull!
+    envs = {}
+    counter = 0
+    keys =["A", "B", "L", "R", "t"] # list of keys to irerate on dict creation
+
+    for A in determistic:
+        for B in stochastic:
+            for L in lifespan:
+                for R in relativeVariation:
+                    for t in timesteps:
+                        counter += 1 # counter for dynamic env name
+                        values = [A, B, L, R, t] # list the parameters to iterate on dict creation
+                        params = {keys[i]: values[i] for i in range(len(keys))} # parameters dict creation
+                        env = {} # create dict for environment
+                        env[f"Env {counter}"] = params # assign parameters dict to env dict
+                        envs.update(env) # add env dict to envrironments dict
+    
+    return envs
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -394,12 +516,21 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
 environments_params = {
-    "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
-    "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
+    # "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
     # "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 }
+
+determistic = [0.3,0.6,0.9]
+stochastic = [0.0]
+lifespan = [10]
+relativeVariation = [2,4,6]
+timesteps = [110]
+
+environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
+
 
 genotypes_params = {
     "Genotype 1": {"I0": 0.2, "b": 0.8},
@@ -444,6 +575,15 @@ initial_populations = [1e3]
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
+# simulator.yield_environment_plots()
+# simulator.yield_phenotypic_responses()
+# simulator.yield_reaction_norms()
+# simulator.yield_population_dynamics()
 simulator.run()
 #endregion
+
+
+
+
+
 
