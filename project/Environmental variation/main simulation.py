@@ -322,20 +322,20 @@ class Simulator():
             for column, env in enumerate(vector):
                 # axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                    axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                    axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
                     for name, params in self.genotypes.items():
                         I = reaction_norm(params["I0"], params["b"], env.variation)
                         axs[row,column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                         axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
                 else:
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                        axs[row].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                        axs[row].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
                         for name, params in self.genotypes.items():
                             I = reaction_norm(params["I0"], params["b"], env.variation)
                             axs[row].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
                             axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                            
                     else:
-                        axs[column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
+                        axs[column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
                         for name, params in self.genotypes.items():
                             I = reaction_norm(params["I0"], params["b"], env.variation)
                             axs[column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
@@ -352,7 +352,7 @@ class Simulator():
         fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
         gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-        fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}", fontsize = 20, y= 0.95)
+        fig.suptitle(f"Population Dynamics \nResponse Curve Parameters: k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, c={antibody_concentration}", fontsize = 20, y= 0.95)
         fig.text(0.5, 0.07, "Time (t)", fontsize=20) # put only 1 x label
         fig.text(0.05, 0.5, "Bacterial density", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
@@ -362,10 +362,10 @@ class Simulator():
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
 
-                            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+                            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
                             axs[row,column].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
                             axs[row,column].set_yscale('log')
-                            axs[row,column].set_ylim(1, 1e9) 
+                            axs[row,column].set_ylim(1, 1e10) 
                             axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}") 
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                            
@@ -373,10 +373,10 @@ class Simulator():
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
                         for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
                                 axs[row].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
                                 axs[row].set_yscale('log')
-                                axs[row].set_ylim(1, 1e9) 
+                                axs[row].set_ylim(1, 1e10) 
                                 axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                           
                                 axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
@@ -385,10 +385,10 @@ class Simulator():
                          for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
 
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env)) # args will be passed down to dX_dt
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
                                 axs[column].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
                                 axs[column].set_yscale('log')
-                                axs[column].set_ylim(1, 1e9) 
+                                axs[column].set_ylim(1, 1e10) 
                                 axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
                                 axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
@@ -509,19 +509,27 @@ def psi(a, psi_max, psi_min, zMIC, k):
     term = (a / zMIC)**k
     return psi_max - ((psi_max - psi_min) * term) / (term + 1)
 
-def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
+def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
     '''function in which growth rate is calculated depending on the environmental conditions'''
 
     # decide in which timestep(e.g day) to quit the administration of antibiotic
-    if t > 5: 
-        a_t = 3 # antibiotic concentration
+    if t % 18 < 8: 
+        a_t = antibody_concentration 
     else:
         a_t = 0
+
+    if X < 2:
+        X = 0
+    
+    # current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
+    # growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
+    # growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, psi_min, zMIC, k) * X * (1 - (X/1e7))
     
     current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
     growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
-    growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, psi_min, zMIC, k) * X
-
+    deathrateModifier = - (growth_rate_modifier * 4)
+    growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, deathrateModifier, zMIC, k) * X * (1 - (X/1e9))
+    
     return max(growth_rate, -X / 0.04)
 
 #endregion
@@ -540,10 +548,10 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment):
 #     "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 # }
 
-determistic = [0.3, 0.6, 0.9]
-stochastic = [0.0, 0.1]
+determistic = [0.3,1 ]
+stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [2,4]
+relativeVariation = [1,8]
 timesteps = [110]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
@@ -551,19 +559,20 @@ environments_params = construct_params(determistic, stochastic, lifespan, relati
 
 genotypes_params = {
     "Genotype 1": {"I0": 0.2, "b": 0.8},
-    "Genotype 2": {"I0": 0.4, "b":0.6},
-    "Genotype 3": {"I0": 0.6, "b": 0.4},
-    "Genotype 4": {"I0": 0.8, "b": 0.2},
-    "Genotype 5": {"I0": 0.2, "b": 1.4},    
+    # "Genotype 2": {"I0": 0.4, "b":0.6},
+    # "Genotype 3": {"I0": 0.6, "b": 0.4},
+    "Genotype 4": {"I0": 0.7, "b": 0.1},
+    # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
+antibody_concentration = 1.7
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
-time_frame = np.linspace(0, 10, 11) #should be passed on odeint()
-initial_populations = [1e3]
+time_frame = np.linspace(0, 100, 100) #should be passed on odeint()
+initial_populations = [1e7]
 
 #endregion
 
