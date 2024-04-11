@@ -4,6 +4,7 @@
 #region
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from scipy.integrate import odeint
 import io 
 import os
@@ -17,7 +18,7 @@ from PIL import Image
 
 class Environment():
 
-    def __init__(self, A = 1, B = 0.1, L = 10, R = 10, t = 365):
+    def __init__(self, A = 1, B = 0.1, L = 10, R = 10, t = 100):
         '''
         Environmental variation that individuals face, relative to their lifespam
         t = time, A = determinism magnitude, B = stochasticity magnitude
@@ -64,13 +65,13 @@ class Environment():
         self.fig, self.ax = self._create_plot()
 
     def view(self):
-
-        renderPeriod = 3
-        initial_title = self.ax.get_title() # keep original title to put after rendering
-        self.ax.set_title(self.ax.get_title() + "\n" + f'Will disappear after {renderPeriod} seconds') # temp title for rendering
-        plt.show(block=False) # stop from blocking in the execution
-        plt.pause(renderPeriod)
-        self.ax.set_title(initial_title) # set initial title again
+        None
+        # renderPeriod = 3
+        # initial_title = self.ax.get_title() # keep original title to put after rendering
+        # self.ax.set_title(self.ax.get_title() + "\n" + f'Will disappear after {renderPeriod} seconds') # temp title for rendering
+        # plt.show(block=False) # stop from blocking in the execution
+        # plt.pause(renderPeriod)
+        # self.ax.set_title(initial_title) # set initial title again
         
     def save(self):
         self.fig.savefig(f"Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png")
@@ -115,7 +116,7 @@ class Environment():
         for initial_population in initial_populations:
             for name, params in genotypes.items():
 
-                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, self)) # args will be passed down to dX_dt
+                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, self,antibody_concentration)) # args will be passed down to dX_dt
                 ax.plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
 
         ax.set_xlabel('Time')
@@ -359,6 +360,7 @@ class Simulator():
         for row, vector in enumerate(row_vectors):
             for column, env in enumerate(vector):
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+                    
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
 
@@ -479,6 +481,27 @@ def construct_params(determistic, stochastic, lifespan, relativeVariation, times
                         envs.update(env) # add env dict to envrironments dict
     
     return envs
+
+def antibiotic_exposure_layers_applier(period, ax):
+
+    antibody_exposure_frame = []
+    antibody_NOT_exposure_frame =[]
+    # print(time_frame)
+
+    for time in period:
+        if time % 4 == 3:
+            antibody_exposure_frame.append(int(time))
+        else:
+            antibody_NOT_exposure_frame.append(int(time))
+
+    for i in set(antibody_exposure_frame):
+        ax.axvspan(i, i+1, facecolor='red', edgecolor='none', alpha=.3)
+    for i in set(antibody_NOT_exposure_frame):
+        ax.axvspan(i, i+1, facecolor='green', edgecolor='none', alpha=.3)
+
+    exposure_patch = mpatches.Patch(color='red',  alpha=.3, label='Antibiotic Exposure')
+    no_exposure_patch = mpatches.Patch(color='green', alpha=.3, label='No exposure')
+    ax.legend(handles=[exposure_patch,no_exposure_patch])
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -512,8 +535,8 @@ def psi(a, psi_max, psi_min, zMIC, k):
 def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
     '''function in which growth rate is calculated depending on the environmental conditions'''
 
-    # decide in which timestep(e.g day) to quit the administration of antibiotic
-    if t % 18 < 8: 
+    # decide in which timestep(e.g day/hour) to quit the administration of antibiotic
+    if t < 50: 
         a_t = antibody_concentration 
     else:
         a_t = 0
@@ -565,13 +588,14 @@ genotypes_params = {
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
+antibody_administration_frames = []
 antibody_concentration = 1.7
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
-time_frame = np.linspace(0, 100, 100) #should be passed on odeint()
+time_frame = np.linspace(0, 99, 100) #should be passed on odeint()
 initial_populations = [1e7]
 
 #endregion
@@ -582,34 +606,36 @@ initial_populations = [1e7]
 
 # region test simulations
 
-#     #region environment construction
-# environment = Environment()
-# environment.trim()
-# environment.save()
-#     #endregion
+    #region environment construction
+environment = Environment()
+environment.trim()
+environment.save()
+    #endregion
 
-#     #region norms & responses to environmental variation
-# environment.gene_reaction_norms(genotypes_params)
-# environment.gene_responses(genotypes_params)
-#     #endregion
+    #region norms & responses to environmental variation
+environment.gene_reaction_norms(genotypes_params)
+environment.gene_responses(genotypes_params)
+    #endregion
 
-#     #region bacterial growth simulations
-# environment.run_simulation(genotypes_params, initial_populations)
-#      #endregion
+    #region bacterial growth simulations
+environment.run_simulation(genotypes_params, initial_populations)
+    #endregion
 
 #endregion
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
 simulator.yield_environment_plots()
-simulator.yield_phenotypic_responses()
-simulator.yield_reaction_norms()
-simulator.yield_population_dynamics()
+# simulator.yield_phenotypic_responses()
+# simulator.yield_reaction_norms()
+# simulator.yield_population_dynamics()
 # simulator.run()
 #endregion
 
 
 
+# antibiotic_exposure_layers_applier(time_frame,environment.ax)
+# environment.save()
 
 
 
