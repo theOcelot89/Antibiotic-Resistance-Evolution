@@ -1,59 +1,30 @@
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import matplotlib.patches as mpatches
 
-# dummy data (Days)
-dates_d = pd.date_range('2017-01-01', '2017-02-01', freq='D')
-df = pd.DataFrame(np.random.randint(1, 20, (dates_d.shape[0], 1)))
-df.index = dates_d
+#define data to plot
+x = [1, 2, 3, 4, 5, 6, 7]
+y = [2, 3, 5, 8, 12, 18, 27]
 
-# dummy data (Hours)
-dates_h = pd.date_range('2017-01-01', '2017-02-01', freq='H')
-df_h = pd.DataFrame(np.random.randint(1, 20, (dates_h.shape[0], 1)))
-df_h.index = dates_h
+#create scatter plot of x vs. y
+plt.scatter(x, y, label='Original Data', color='steelblue')
 
-#two graphs
-fig, axes = plt.subplots(nrows=2, ncols=1, sharex=True)
+#define handles and labels that will get added to legend
+handles, labels = plt.gca().get_legend_handles_labels()
 
-#plot lines
-dfs = [df, df_h]
-for i, df in enumerate(dfs):
-    for v in df.columns.tolist():
-        axes[i].plot(df[v], label=v, color='black', alpha=.5)
+print(handles, labels)
 
-def find_weekend_indices(datetime_array):
-    indices = []
-    for i in range(len(datetime_array)):
-        if datetime_array[i].weekday() >= 5:
-            indices.append(i)
-    return indices
+#define patches and lines to add to legend
+patch1 = mpatches.Patch(color='orange', label='First Manual Patch')
+patch2 = mpatches.Patch(color='orange', label='First Manual Patch')   
+line1 = Line2D([0], [0], label='First Manual Line', color='purple')
+line2 = Line2D([0], [0], label='Second Manual Line', color='red')
 
-def find_occupied_hours(datetime_array):
-    indices = []
-    for i in range(len(datetime_array)):
-        if datetime_array[i].weekday() < 5:
-            if datetime_array[i].hour >= 7 and datetime_array[i].hour <= 19:
-                indices.append(i)
-    return indices
+#add handles
+handles.extend([patch1, line1, line2])
 
-def highlight_datetimes(indices, ax):
-    i = 0
-    while i < len(indices)-1:
-        ax.axvspan(df.index[indices[i]], df.index[indices[i] + 1], facecolor='green', edgecolor='none', alpha=.5)
-        i += 1
+#add legend
+plt.legend(handles=handles)
 
-#find to be highlighted areas, see functions
-weekend_indices = find_weekend_indices(df.index)
-occupied_indices = find_occupied_hours(df_h.index)
-#highlight areas
-highlight_datetimes(weekend_indices, axes[0])
-highlight_datetimes(occupied_indices, axes[1])
-
-#formatting..
-# axes[0].xaxis.grid(b=True, which='major', color='black', linestyle='--', alpha=1) #add xaxis gridlines
-# axes[1].xaxis.grid(b=True, which='major', color='black', linestyle='--', alpha=1) #add xaxis gridlines
-axes[0].set_xlim(min(dates_d), max(dates_d))
-axes[0].set_title('Weekend days', fontsize=10)
-axes[1].set_title('Occupied hours', fontsize=10)
-
+#display plot
 plt.show()

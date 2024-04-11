@@ -23,4 +23,8 @@ plan multiplot that seems this way for population dynamics for parameters of det
 
 -> IMPORTANT pass genotypes in DX/dt in order to run correct DONE
 -> Integrate the dx/dt workflow inside the environment class DONE
--> Save figs to dynamically created folders
+-> Save figs to dynamically created folders DONE
+
+11/4
+-> create condition for antibiotic administration to pass dynamically to dx/dt and to apply antibiotic exposure layers
+-> create function for creating the plots dynamically inside simulation class
