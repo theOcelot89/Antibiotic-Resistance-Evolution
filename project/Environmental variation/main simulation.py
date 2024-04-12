@@ -499,9 +499,9 @@ def antibiotic_exposure_layers_applier(period, ax):
 
     # appending highlight to the plot
     for i in set(antibody_exposure_frame):
-        ax.axvspan(i, i+1, facecolor='red', edgecolor='none', alpha=.2) 
+        ax.axvspan(i, i+1, facecolor='lightcoral', edgecolor='none', alpha=0.3 ) 
     for i in set(antibody_NOT_exposure_frame):
-        ax.axvspan(i, i+1, facecolor='green', edgecolor='none', alpha=.2)
+        ax.axvspan(i, i+1, facecolor='palegreen', edgecolor='none', alpha=0.3 )
 
     #create color patches for the legend to show
     exposure_patch = mpatches.Patch(color='red',  alpha=.2, label='Antibiotic Exposure')
@@ -553,10 +553,6 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     if X < 2:
         X = 0
     
-    # current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
-    # growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
-    # growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, psi_min, zMIC, k) * X * (1 - (X/1e7))
-    
     current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
     growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
     deathrateModifier = - (growth_rate_modifier * 3)
@@ -585,7 +581,7 @@ def is_time_for_administration(time):
 determistic = [0.3,0.6,1 ]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,8]
+relativeVariation = [1,8,16]
 timesteps = [100]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
