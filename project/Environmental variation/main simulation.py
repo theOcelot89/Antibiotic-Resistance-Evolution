@@ -9,6 +9,7 @@ from scipy.integrate import odeint
 import io 
 import os
 from PIL import Image 
+import pylab as pl
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -251,8 +252,6 @@ class Simulator():
                     axs[row,column].set_ylim(0,1)
                     axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                     axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
-                    antibiotic_exposure_layers_applier(time_frame, axs[row,column])
-
 
                 else:   # if not, it has one dimension
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
@@ -269,11 +268,10 @@ class Simulator():
                         axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                         axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
 
-
-
+        
         save('./report/Stacked Environments')
         print("environment plots DONE")
-        return fig
+        return fig, axs
 
     def yield_reaction_norms(self):
 
@@ -402,6 +400,27 @@ class Simulator():
         print("population dynamics DONE")
         return fig
     
+    def yield_environment_plots_with_antibiotic_frames(self):
+        # this function works right but has problem with the custom save function & that is why i dont use it.
+        # problem is that custom save() doesnt take this fig as current and it saves and an irrelevant plot of the past
+        # when tried to activate fig with plt.figure(fig) saving it causes a traceback error with save() (somethings broken with plt.close())
+
+
+        fig, axs = self.yield_environment_plots()
+
+        for ax in axs:
+            for plot in ax:
+                antibiotic_exposure_layers_applier(time_frame,plot)
+
+        fig.savefig("./report/Stack environments with Antibiotics Layers")
+        # fig.savefig('./report/stacked environments with Antibiotc layers')
+        # pl.figure(figure)
+        # # plt.close()
+        # save('./report/Stacked Environments with Antibiotic Layers')
+        # print("after")
+        
+        
+
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -511,6 +530,8 @@ def antibiotic_exposure_layers_applier(period, ax):
     handles, labels = ax.get_legend_handles_labels() # extracting the previous legend stuff
     handles.extend([exposure_patch,no_exposure_patch]) # adding the patch to the old stuff
     ax.legend(handles=handles)
+
+    return ax
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -546,7 +567,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
 
     # decide in which timestep(e.g day/hour) to quit the administration of antibiotic
     if is_time_for_administration(t): 
-        a_t = antibody_concentration 
+        a_t = 2 
     else:
         a_t = 0
 
@@ -561,7 +582,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     return max(growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
-    return time % 7 < 4
+    return time % 7 < 3
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -581,8 +602,8 @@ def is_time_for_administration(time):
 determistic = [0.3,0.6,1 ]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,8,16]
-timesteps = [100]
+relativeVariation = [1,8]
+timesteps = [101]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
 
@@ -596,13 +617,13 @@ genotypes_params = {
 }
 
 antibody_administration_frames = []
-antibody_concentration = 1.9
+antibody_concentration = 2
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.8  # maximal growth rate
 
-time_frame = np.linspace(0, 99, 100) #should be passed on odeint()
+time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 initial_populations = [1e7]
 
 #endregion
@@ -632,13 +653,15 @@ initial_populations = [1e7]
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
-simulator.yield_environment_plots()
-simulator.yield_phenotypic_responses()
-simulator.yield_reaction_norms()
-simulator.yield_population_dynamics()
+# simulator.yield_environment_plots()
+# simulator.yield_phenotypic_responses()
+# simulator.yield_reaction_norms()
+# simulator.yield_population_dynamics()
+fig =simulator.yield_environment_plots_with_antibiotic_frames()
 # simulator.run()
 #endregion
 
+print("..end of simulation")
 
 
 
