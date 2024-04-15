@@ -160,7 +160,8 @@ class Simulator():
         self.dynamics_plot = self.yield_population_dynamics()
 
         self._generate_report()
-       
+        print("..end of simulation")
+               
     def _yield_environments(self): 
 
         environment_list = []
@@ -283,21 +284,18 @@ class Simulator():
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
                     for name, params in self.genotypes.items():
                         I = reaction_norm(params["I0"], params["b"], env.variation)
-                        axs[row,column].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                        axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+                        custom_plot(axs[row,column], env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
                 else:
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
                         for name, params in self.genotypes.items():
                             I = reaction_norm(params["I0"], params["b"], env.variation)
-                            axs[row].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                            axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                            
+                            custom_plot(axs[row], env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                    
                     else:
                         for name, params in self.genotypes.items():
                             I = reaction_norm(params["I0"], params["b"], env.variation)
-                            axs[column].plot(env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                            axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                        
+                            custom_plot(axs[column], env.variation, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
 
-
+        
         save('./report/Stacked Reaction Norms')
         print("reaction norms DONE")
         return fig
@@ -682,14 +680,13 @@ initial_populations = [1e7]
 simulator = Simulator(environments_params, genotypes_params)
 # simulator.yield_environment_plots()
 simulator.yield_phenotypic_responses()
-# # simulator.yield_reaction_norms()
+simulator.yield_reaction_norms()
 # # simulator.yield_population_dynamics()
 simulator.yield_environment_plots_with_antibiotic_frames()
 # simulator.yield_population_dynamics_with_antibiotic_frames()
 # simulator.run()
 #endregion
 
-print("..end of simulation")
 
 
 
