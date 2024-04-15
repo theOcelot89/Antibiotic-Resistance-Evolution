@@ -402,15 +402,19 @@ class Simulator():
     
     def yield_environment_plots_with_antibiotic_frames(self):
         # this function works right but has problem with the custom save function & that is why i dont use it.
-        # problem is that custom save() doesnt take this fig as current and it saves and an irrelevant plot of the past
+        # problem is that custom save() doesnt take this fig as current and it saves an irrelevant plot of the past
         # when tried to activate fig with plt.figure(fig) saving it causes a traceback error with save() (somethings broken with plt.close())
 
 
         fig, axs = self.yield_environment_plots()
-
-        for ax in axs:
-            for plot in ax:
-                antibiotic_exposure_layers_applier(time_frame,plot)
+        
+        if axs.ndim > 1:
+            for vector in axs:
+                for ax in vector:
+                    antibiotic_exposure_layers_applier(time_frame,ax)
+        else:
+            for ax in axs:
+                antibiotic_exposure_layers_applier(time_frame,ax)
 
         fig.savefig("./report/Stack environments with Antibiotics Layers")
         # fig.savefig('./report/stacked environments with Antibiotc layers')
@@ -599,10 +603,10 @@ def is_time_for_administration(time):
 #     "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 # }
 
-determistic = [0.3,0.6,1 ]
+determistic = [0.3,0.6,0.9]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,8]
+relativeVariation = [1,8,12]
 timesteps = [101]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
@@ -657,7 +661,7 @@ simulator = Simulator(environments_params, genotypes_params)
 # simulator.yield_phenotypic_responses()
 # simulator.yield_reaction_norms()
 # simulator.yield_population_dynamics()
-fig =simulator.yield_environment_plots_with_antibiotic_frames()
+simulator.yield_environment_plots_with_antibiotic_frames()
 # simulator.run()
 #endregion
 
