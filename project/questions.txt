@@ -5,3 +5,5 @@ dont understand how this actually works? tracked in debugger and i dont understa
 
 E[E < 0] = 0.1  # if any of the values are negative, set them to 0
     should set them to 0 instead of 0.1?
+
+should con = MIC show a flat line in the growth
