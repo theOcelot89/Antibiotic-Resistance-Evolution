@@ -247,24 +247,18 @@ class Simulator():
         for row, vector in enumerate(row_vectors): # iterate on the stack of rows
             for column, env in enumerate(vector): # iterate on the row itself
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                    axs[row,column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-                    axs[row,column].legend()
-                    axs[row,column].set_ylim(0,1)
+                    custom_plot(axs[row,column],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
                     axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                     axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
 
                 else:   # if not, it has one dimension
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                        axs[row].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-                        axs[row].legend()
-                        axs[row].set_ylim(0,1)
+                        custom_plot(axs[row],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
                         axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                         axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
 
                     else:               # else another parameter has variation     
-                        axs[column].plot(env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}')
-                        axs[column].legend()
-                        axs[column].set_ylim(0,1)
+                        custom_plot(axs[column],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
                         axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                         axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
 
@@ -321,26 +315,22 @@ class Simulator():
 
         for row, vector in enumerate(row_vectors):
             for column, env in enumerate(vector):
-                # axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot")
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                    axs[row,column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
+                    custom_plot(axs[row,column], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
                     for name, params in self.genotypes.items():
                         I = reaction_norm(params["I0"], params["b"], env.variation)
-                        axs[row,column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                        axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+                        custom_plot(axs[row,column], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
                 else:
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                        axs[row].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
+                        custom_plot(axs[row], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
                         for name, params in self.genotypes.items():
                             I = reaction_norm(params["I0"], params["b"], env.variation)
-                            axs[row].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                            axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                            
+                            custom_plot(axs[row], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                           
                     else:
-                        axs[column].plot(env.t, env.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
+                        custom_plot(axs[column], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
                         for name, params in self.genotypes.items():
                             I = reaction_norm(params["I0"], params["b"], env.variation)
-                            axs[column].plot(env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-                            axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                        
+                            custom_plot(axs[column], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                      
 
         save('./report/Stacked Phenotypics Responses')
         print("phenotypics responses DONE")
@@ -550,6 +540,25 @@ def antibiotic_exposure_layers_applier(period, ax):
     ax.legend(handles=handles)
 
     return ax
+
+def custom_plot(ax, xdim, ydim, **params):
+
+    # extracting necessary parameters for plot() method or set default value to None or others
+    linestyle = params.get('linestyle', None) 
+    color = params.get('color', None) 
+    label = params.get('label', None)
+
+    ax.plot(xdim, ydim, linestyle=linestyle, color=color, label=label)
+    ax.legend()
+
+
+    if "legend_title" in params:
+        ax.legend(title=params["legend_title"])
+
+    if "ylim" in params:
+        ax.set_ylim(params["ylim"][0],params["ylim"][1])
+
+
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -672,11 +681,11 @@ initial_populations = [1e7]
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
 # simulator.yield_environment_plots()
-# simulator.yield_phenotypic_responses()
-# simulator.yield_reaction_norms()
-# simulator.yield_population_dynamics()
+simulator.yield_phenotypic_responses()
+# # simulator.yield_reaction_norms()
+# # simulator.yield_population_dynamics()
 simulator.yield_environment_plots_with_antibiotic_frames()
-simulator.yield_population_dynamics_with_antibiotic_frames()
+# simulator.yield_population_dynamics_with_antibiotic_frames()
 # simulator.run()
 #endregion
 
