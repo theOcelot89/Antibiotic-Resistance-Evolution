@@ -370,8 +370,7 @@ class Simulator():
                             axs[row,column].set_ylim(1, 1e10) 
                             axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}") 
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
-                            axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold") 
-                            antibiotic_exposure_layers_applier(time_frame, axs[row,column])                           
+                            axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
                 else:
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
                         for initial_population in initial_populations:
@@ -398,13 +397,13 @@ class Simulator():
         
         save('./report/Stacked Population Dynamics')
         print("population dynamics DONE")
-        return fig
+        return fig, axs
     
     def yield_environment_plots_with_antibiotic_frames(self):
         # this function works right but has problem with the custom save function & that is why i dont use it.
         # problem is that custom save() doesnt take this fig as current and it saves an irrelevant plot of the past
         # when tried to activate fig with plt.figure(fig) saving it causes a traceback error with save() (somethings broken with plt.close())
-
+        
 
         fig, axs = self.yield_environment_plots()
         
@@ -423,7 +422,22 @@ class Simulator():
         # save('./report/Stacked Environments with Antibiotic Layers')
         # print("after")
         
-        
+    def yield_population_dynamics_with_antibiotic_frames(self):
+        # this function works right but has problem with the custom save function & that is why i dont use it.
+        # problem is that custom save() doesnt take this fig as current and it saves an irrelevant plot of the past
+        # when tried to activate fig with plt.figure(fig) saving it causes a traceback error with save() (somethings broken with plt.close())
+
+        fig, axs = self.yield_population_dynamics()
+
+        if axs.ndim > 1:
+            for vector in axs:
+                for ax in vector:
+                    antibiotic_exposure_layers_applier(time_frame,ax)
+        else:
+            for ax in axs:
+                antibiotic_exposure_layers_applier(time_frame,ax)
+
+        fig.savefig("./report/Stack Population Dynamics with Antibiotics Layers")
 
 #endregion
 
@@ -662,6 +676,7 @@ simulator = Simulator(environments_params, genotypes_params)
 # simulator.yield_reaction_norms()
 # simulator.yield_population_dynamics()
 simulator.yield_environment_plots_with_antibiotic_frames()
+simulator.yield_population_dynamics_with_antibiotic_frames()
 # simulator.run()
 #endregion
 
