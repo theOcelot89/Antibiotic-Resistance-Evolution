@@ -161,7 +161,7 @@ class Simulator():
 
         self._generate_report()
         print("..end of simulation")
-               
+
     def _yield_environments(self): 
 
         environment_list = []
@@ -351,12 +351,8 @@ class Simulator():
                     
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
-
                             X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
-                            axs[row,column].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
-                            axs[row,column].set_yscale('log')
-                            axs[row,column].set_ylim(1, 1e10) 
-                            axs[row,column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}") 
+                            custom_plot(axs[row,column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
                 else:
@@ -364,22 +360,15 @@ class Simulator():
                         for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
                                 X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
-                                axs[row].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
-                                axs[row].set_yscale('log')
-                                axs[row].set_ylim(1, 1e10) 
-                                axs[row].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                           
+                                custom_plot(axs[row], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                                 axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
                     
                     else:   # else another parameter has variation 
                          for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
-
                                 X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
-                                axs[column].plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}')
-                                axs[column].set_yscale('log')
-                                axs[column].set_ylim(1, 1e10) 
-                                axs[column].legend(title = f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")  
+                                custom_plot(axs[column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))                                
                                 axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
         
@@ -556,6 +545,8 @@ def custom_plot(ax, xdim, ydim, **params):
     if "ylim" in params:
         ax.set_ylim(params["ylim"][0],params["ylim"][1])
 
+    if "yscale" in params:
+        ax.set_yscale(params["yscale"])
 
 #endregion
 
@@ -627,7 +618,7 @@ def is_time_for_administration(time):
 determistic = [0.3,0.6,0.9]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,8,12]
+relativeVariation = [1,8,12,16]
 timesteps = [101]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
@@ -681,9 +672,9 @@ simulator = Simulator(environments_params, genotypes_params)
 # simulator.yield_environment_plots()
 simulator.yield_phenotypic_responses()
 simulator.yield_reaction_norms()
-# # simulator.yield_population_dynamics()
+simulator.yield_population_dynamics()
 simulator.yield_environment_plots_with_antibiotic_frames()
-# simulator.yield_population_dynamics_with_antibiotic_frames()
+simulator.yield_population_dynamics_with_antibiotic_frames()
 # simulator.run()
 #endregion
 
