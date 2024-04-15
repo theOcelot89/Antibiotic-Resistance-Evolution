@@ -154,12 +154,11 @@ class Simulator():
 
         print("Simulation begins...")
 
-        self.envs_plot = self.yield_environment_plots()
+        self.envs_plot = self.yield_environment_plots_with_antibiotic_frames()
         self.norms_plot = self.yield_reaction_norms()
         self.responses_plot = self.yield_phenotypic_responses()
-        self.dynamics_plot = self.yield_population_dynamics()
+        self.dynamics_plot = self.yield_population_dynamics_with_antibiotic_frames()
 
-        self._generate_report()
         print("..end of simulation")
 
     def _yield_environments(self): 
@@ -202,7 +201,7 @@ class Simulator():
 
         return row_vectors, rows, columns
     
-    def _generate_report(self):
+    def generate_report(self):
         # ok that was a touch one & a number of steps & guides have to be considered in order for a nice report sheet
         # 1. convert figures to images (that is the only way to combine them) https://www.geeksforgeeks.org/saving-a-plot-as-an-image-in-python/
         # 2. use fig.figAddSubplot technique to create the grid https://www.geeksforgeeks.org/how-to-display-multiple-images-in-one-figure-correctly-in-matplotlib/
@@ -265,7 +264,6 @@ class Simulator():
 
         
         save('./report/Stacked Environments')
-        print("environment plots DONE")
         return fig, axs
 
     def yield_reaction_norms(self):
@@ -297,7 +295,6 @@ class Simulator():
 
         
         save('./report/Stacked Reaction Norms')
-        print("reaction norms DONE")
         return fig
     
     def yield_phenotypic_responses(self):
@@ -331,7 +328,6 @@ class Simulator():
                             custom_plot(axs[column], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                      
 
         save('./report/Stacked Phenotypics Responses')
-        print("phenotypics responses DONE")
         return fig
     
     def yield_population_dynamics(self):
@@ -373,7 +369,6 @@ class Simulator():
                                 axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
         
         save('./report/Stacked Population Dynamics')
-        print("population dynamics DONE")
         return fig, axs
     
     def yield_environment_plots_with_antibiotic_frames(self):
@@ -393,6 +388,7 @@ class Simulator():
                 antibiotic_exposure_layers_applier(time_frame,ax)
 
         fig.savefig("./report/Stack environments with Antibiotics Layers")
+        return fig
         # fig.savefig('./report/stacked environments with Antibiotc layers')
         # pl.figure(figure)
         # # plt.close()
@@ -415,6 +411,7 @@ class Simulator():
                 antibiotic_exposure_layers_applier(time_frame,ax)
 
         fig.savefig("./report/Stack Population Dynamics with Antibiotics Layers")
+        return fig
 
 #endregion
 
@@ -583,7 +580,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
 
     # decide in which timestep(e.g day/hour) to quit the administration of antibiotic
     if is_time_for_administration(t): 
-        a_t = 2 
+        a_t = antibody_concentration 
     else:
         a_t = 0
 
@@ -592,7 +589,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     
     current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
     growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
-    deathrateModifier = - (growth_rate_modifier * 3)
+    deathrateModifier = - (growth_rate_modifier * 5)
     growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, deathrateModifier, zMIC, k) * X * (1 - (X/1e9))
     
     return max(growth_rate, -X / 0.04)
@@ -618,7 +615,7 @@ def is_time_for_administration(time):
 determistic = [0.3,0.6,0.9]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,8,12,16]
+relativeVariation = [1,8,16]
 timesteps = [101]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
@@ -632,7 +629,6 @@ genotypes_params = {
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
-antibody_administration_frames = []
 antibody_concentration = 2
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
@@ -669,13 +665,14 @@ initial_populations = [1e7]
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
-# simulator.yield_environment_plots()
-simulator.yield_phenotypic_responses()
-simulator.yield_reaction_norms()
-simulator.yield_population_dynamics()
-simulator.yield_environment_plots_with_antibiotic_frames()
-simulator.yield_population_dynamics_with_antibiotic_frames()
-# simulator.run()
+# # simulator.yield_environment_plots()
+# simulator.yield_phenotypic_responses()
+# simulator.yield_reaction_norms()
+# simulator.yield_population_dynamics()
+# simulator.yield_environment_plots_with_antibiotic_frames()
+# simulator.yield_population_dynamics_with_antibiotic_frames()
+# simulator.generate_report()
+simulator.run()
 #endregion
 
 
