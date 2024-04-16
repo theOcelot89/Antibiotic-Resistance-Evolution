@@ -594,18 +594,24 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
         a_t = 0
     
     current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
-    growth_rate_modifier = psi_max * reaction_norm(params["I0"], params["b"], current_env) # new psimax depending on plasticity
-    deathrateModifier = - (growth_rate_modifier * 5)
-    growth_rate = np.log(10) * psi(a_t, growth_rate_modifier, deathrateModifier, zMIC, k) * X * (1 - (X/1e9))
+    modified_growth_rate = growth_rate_modifier(psi_max, params, current_env)
+    modified_death_rate = - death_rate_modifier(modified_growth_rate)
+    actual_growth_rate = np.log(10) * psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k) * X * (1 - (X/1e9))
 
     
-    return max(growth_rate, -X / 0.04)
+    return max(actual_growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
     return time % 7 < 3
 
 def population_is_below_threshold(x):
     return x < 100
+
+def growth_rate_modifier(psi_max, params, env):
+    return psi_max * reaction_norm(params["I0"], params["b"], env)
+
+def death_rate_modifier(growth):
+    return growth * 4
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -639,7 +645,7 @@ genotypes_params = {
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
-antibody_concentration = 1.7
+antibody_concentration = 1.4
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
