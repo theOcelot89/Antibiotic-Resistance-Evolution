@@ -7,7 +7,7 @@
 
 11/4
 -> create condition for antibiotic administration to pass dynamically to dx/dt and to apply antibiotic exposure layers DONE
--> create function for creating the plots dynamically inside simulation class
+-> create function for creating the plots dynamically inside simulation class DONE
 
 12/4
--> add applying layers for frames to alla dimensions expansion in environment multiplot and all other multiplots production.
+-> add applying layers for frames to alla dimensions expansion in environment multiplot and all other multiplots production. DONE
