@@ -10,6 +10,8 @@ import io
 import os
 from PIL import Image 
 import pylab as pl
+import inspect
+import ast
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -338,12 +340,15 @@ class Simulator():
         gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
         fig.suptitle(("Population Dynamics \n"
-                        "Response Curve Parameters: "
+                        r"$\bf{" + "Response Curve Parameters:" + "}$"
                         f"k={k}, "
                         f"Ψmax={psi_max}, "
                         f"Ψmin={psi_min}, "
                         f"MIC={zMIC}, "
-                        f"c={antibody_concentration}"),
+                        f"c={antibody_concentration} \n"
+                        r"$\bf{" + "Growth  rate  modifier:" + "}$" + f"{get_function_body(growth_rate_modifier)} \n"
+                        r"$\bf{" + "Death  rate  modifier:" + "}$" + f"{get_function_body(death_rate_modifier)}"
+                        ),
                         fontsize=20, y=0.95)
         fig.text(0.5, 0.07, "Time (t)", fontsize=20) # put only 1 x label
         fig.text(0.05, 0.5, "Bacterial density", rotation="vertical", va="center", fontsize=20) # put only 1 y label
@@ -552,6 +557,27 @@ def custom_plot(ax, xdim, ydim, **params):
     if "yscale" in params:
         ax.set_yscale(params["yscale"])
 
+def get_function_body(func):
+    # Get the source code of the function as a string
+    source_code = inspect.getsource(func)
+    
+    # Parse the source code into an Abstract Syntax Tree (AST)
+    tree = ast.parse(source_code)
+    
+    # Extract the body of the function
+    function_body = tree.body[0].body
+    
+    # Convert the body back into a string
+    function_body_str = ast.unparse(function_body)
+
+    # Remove the "return" statement if present
+    if function_body_str.strip().startswith("return "):
+        function_body_str = function_body_str.replace("return ", "", 1)
+    
+    return function_body_str
+
+def bold_text(text):
+  return "\033[1m" + text + "\033[0m"
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -598,14 +624,13 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     modified_death_rate = - death_rate_modifier(modified_growth_rate)
     actual_growth_rate = np.log(10) * psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k) * X * (1 - (X/1e9))
 
-    
     return max(actual_growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
     return time % 7 < 3
 
 def population_is_below_threshold(x):
-    return x < 100
+    return x < 2
 
 def growth_rate_modifier(psi_max, params, env):
     return psi_max * reaction_norm(params["I0"], params["b"], env)
