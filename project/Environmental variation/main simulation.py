@@ -620,8 +620,13 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
         a_t = 0
     
     current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
-    modified_growth_rate = growth_rate_modifier(psi_max, params, current_env)
-    modified_death_rate = - death_rate_modifier(modified_growth_rate)
+    modified_current_env = current_env * (1 - (X/1e9))
+
+
+    
+    
+    modified_growth_rate = growth_rate_modifier(psi_max, params, modified_current_env)
+    modified_death_rate = death_rate_modifier(modified_growth_rate)
     actual_growth_rate = np.log(10) * psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k) * X * (1 - (X/1e9))
 
     return max(actual_growth_rate, -X / 0.04)
@@ -636,7 +641,7 @@ def growth_rate_modifier(psi_max, params, env):
     return psi_max * reaction_norm(params["I0"], params["b"], env)
 
 def death_rate_modifier(growth):
-    return growth * 4.5
+    return  - growth * 3
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -663,14 +668,14 @@ environments_params = construct_params(determistic, stochastic, lifespan, relati
 
 
 genotypes_params = {
-    "Genotype 1": {"I0": 0.2, "b": 0.8},
+    "Genotype 1": {"I0": 0.2, "b": 3},
     # "Genotype 2": {"I0": 0.4, "b":0.6},
     # "Genotype 3": {"I0": 0.6, "b": 0.4},
-    "Genotype 4": {"I0": 0.7, "b": 0.1},
+    # "Genotype 4": {"I0": 0.7, "b": 0.1},
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
-antibody_concentration = 1.4
+antibody_concentration = 2
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
@@ -715,6 +720,7 @@ simulator.yield_population_dynamics_with_antibiotic_frames()
 # simulator.generate_report()
 # simulator.run()
 #endregion
+
 
 
 
