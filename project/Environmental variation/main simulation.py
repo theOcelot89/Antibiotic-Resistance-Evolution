@@ -346,10 +346,10 @@ class Simulator():
                         f"Ψmin={psi_min}, "
                         f"MIC={zMIC}, "
                         f"c={antibody_concentration} \n"
-                        r"$\bf{" + "Growth  rate  modifier:" + "}$" + f"{get_function_body(growth_rate_modifier)} \n"
-                        r"$\bf{" + "Death  rate  modifier:" + "}$" + f"{get_function_body(death_rate_modifier)}"
+                        r"$\bf{" + "Growth  Rate  Modifier:" + "}$" + f"{get_function_body(growth_rate_modifier)} \n"
+                        r"$\bf{" + "Death  Rate  Modifier:" + "}$" + f"{get_function_body(death_rate_modifier)}"
                         ),
-                        fontsize=20, y=0.95)
+                        fontsize=20)
         fig.text(0.5, 0.07, "Time (t)", fontsize=20) # put only 1 x label
         fig.text(0.05, 0.5, "Bacterial density", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
@@ -636,7 +636,7 @@ def growth_rate_modifier(psi_max, params, env):
     return psi_max * reaction_norm(params["I0"], params["b"], env)
 
 def death_rate_modifier(growth):
-    return growth * 4
+    return growth * 4.5
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
