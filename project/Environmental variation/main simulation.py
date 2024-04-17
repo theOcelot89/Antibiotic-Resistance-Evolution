@@ -5,6 +5,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.ticker as ticker
 from scipy.integrate import odeint
 import io 
 import os
@@ -356,7 +357,7 @@ class Simulator():
         for row, vector in enumerate(row_vectors):
             for column, env in enumerate(vector):
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                    custom_plot(axs[row,column], time_frame, env.variation, label='Environmental variation')
+                    
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
                             X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
@@ -423,8 +424,83 @@ class Simulator():
                 antibiotic_exposure_layers_applier(time_frame,ax)
 
         fig.savefig("./report/Stack Population Dynamics with Antibiotics Layers")
-        return fig
+        return fig, axs
 
+    def yield_population_dynamics_with_antibiotic_frames_env_variation(self):
+        
+        row_vectors, rows, columns = self._plot_layer_constructor()
+
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.suptitle(("Population Dynamics \n"
+                        r"$\bf{" + "Response Curve Parameters:" + "}$"
+                        f"k={k}, "
+                        f"Ψmax={psi_max}, "
+                        f"Ψmin={psi_min}, "
+                        f"MIC={zMIC}, "
+                        f"c={antibody_concentration} \n"
+                        r"$\bf{" + "Growth  Rate  Modifier:" + "}$" + f"{get_function_body(growth_rate_modifier)} \n"
+                        r"$\bf{" + "Death  Rate  Modifier:" + "}$" + f"{get_function_body(death_rate_modifier)}"
+                        ),
+                        fontsize=20)
+        fig.text(0.5, 0.07, "Time (t)", fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Bacterial density", rotation="vertical", va="center", fontsize=20) # put only 1 y label
+
+        for row, vector in enumerate(row_vectors):
+            for column, env in enumerate(vector):
+                if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+                    
+                    # plot environmental variation in the same plot with populations dynamics
+                    variation_axe = axs[row,column].twinx()
+                    custom_plot(variation_axe, time_frame, env.variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
+                    variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
+                    
+                    # add antibiotic exposure information
+                    antibiotic_exposure_layers_applier(time_frame,axs[row,column])
+
+                    for initial_population in initial_populations:
+                        for name, params in self.genotypes.items():
+                            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                            custom_plot(axs[row,column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
+                            axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
+                            axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
+                else:
+                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
+                         # plot environmental variation in the same plot with populations dynamics
+                        variation_axe = axs[row].twinx()
+                        custom_plot(variation_axe, time_frame, env.variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
+                        variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
+                    
+                        # add antibiotic exposure information
+                        antibiotic_exposure_layers_applier(time_frame,axs[row])
+                        
+                        for initial_population in initial_populations:
+                            for name, params in self.genotypes.items():
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                                custom_plot(axs[row], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
+                                axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
+                                axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
+                    
+                    else:   # else another parameter has variation 
+                        
+                        # plot environmental variation in the same plot with populations dynamics
+                        variation_axe = axs[column].twinx()
+                        custom_plot(variation_axe, time_frame, env.variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
+                        variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
+                        
+                        # add antibiotic exposure information
+                        antibiotic_exposure_layers_applier(time_frame,axs[column]) 
+                         
+                        for initial_population in initial_populations:
+                            for name, params in self.genotypes.items():
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                                custom_plot(axs[column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))                                
+                                axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
+                                axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+
+        save('./report/Population Dynamics & antibiotic frames & env variation')
+        return fig, axs
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -543,10 +619,12 @@ def custom_plot(ax, xdim, ydim, **params):
     linestyle = params.get('linestyle', None) 
     color = params.get('color', None) 
     label = params.get('label', None)
+    alpha = params.get('alpha', None)
 
-    ax.plot(xdim, ydim, linestyle=linestyle, color=color, label=label)
-    ax.legend()
+    ax.plot(xdim, ydim, linestyle=linestyle, color=color, label=label, alpha=alpha)
 
+    if "legend" in params:
+        ax.legend()
 
     if "legend_title" in params:
         ax.legend(title=params["legend_title"])
@@ -631,7 +709,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     return max(actual_growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
-    return time % 10 < 5
+    return time % 10 < 3
 
 def population_is_below_threshold(x):
     return x < 2
@@ -657,7 +735,7 @@ def death_rate_modifier(growth):
 #     "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 # }
 
-determistic = [0.3,0.6,0.9]
+determistic = [0.3,]
 stochastic = [0.0,]
 lifespan = [10]
 relativeVariation = [1,8,16]
@@ -715,7 +793,8 @@ simulator = Simulator(environments_params, genotypes_params)
 # simulator.yield_reaction_norms()
 # simulator.yield_population_dynamics()
 # simulator.yield_environment_plots_with_antibiotic_frames()
-simulator.yield_population_dynamics_with_antibiotic_frames()
+# simulator.yield_population_dynamics_with_antibiotic_frames()
+simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()
 # simulator.generate_report()
 # simulator.run()
 #endregion

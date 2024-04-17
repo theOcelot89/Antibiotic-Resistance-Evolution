@@ -7,10 +7,10 @@ def psi(a, psi_max, psi_min, zMIC, k):
     '''
 
     term = (a / zMIC)**k
-    return (psi_max - psi_min) * (term / (term - psi_min/psi_max))
+    # return (psi_max - psi_min) * (term / (term - psi_min/psi_max))
 
     return psi_max - ((psi_max - psi_min) * term) / (term + 1)
 
-result = psi(a=2, psi_max= 2, psi_min= -2 ,zMIC= 2, k=0.8)
+result = psi(a=0, psi_max= 8, psi_min= -2 ,zMIC= 2, k=0.8)
 
 print(result)
