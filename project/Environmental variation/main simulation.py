@@ -356,7 +356,7 @@ class Simulator():
         for row, vector in enumerate(row_vectors):
             for column, env in enumerate(vector):
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                    
+                    custom_plot(axs[row,column], time_frame, env.variation, label='Environmental variation')
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
                             X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
@@ -606,6 +606,7 @@ def psi(a, psi_max, psi_min, zMIC, k):
     '''
 
     term = (a / zMIC)**k
+    return (psi_max - psi_min) * (term / (term - psi_min/psi_max))
     return psi_max - ((psi_max - psi_min) * term) / (term + 1)
 
 def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
@@ -622,17 +623,15 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
     modified_current_env = current_env * (1 - (X/1e9))
 
-
-    
-    
     modified_growth_rate = growth_rate_modifier(psi_max, params, modified_current_env)
     modified_death_rate = death_rate_modifier(modified_growth_rate)
-    actual_growth_rate = np.log(10) * psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k) * X * (1 - (X/1e9))
+    growth_rate_after_antibiotic = modified_growth_rate -  psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k)
+    actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
 
     return max(actual_growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
-    return time % 7 < 3
+    return time % 10 < 5
 
 def population_is_below_threshold(x):
     return x < 2
@@ -641,7 +640,7 @@ def growth_rate_modifier(psi_max, params, env):
     return psi_max * reaction_norm(params["I0"], params["b"], env)
 
 def death_rate_modifier(growth):
-    return  - growth * 3
+    return  - growth * 200
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -671,7 +670,7 @@ genotypes_params = {
     "Genotype 1": {"I0": 0.2, "b": 3},
     # "Genotype 2": {"I0": 0.4, "b":0.6},
     # "Genotype 3": {"I0": 0.6, "b": 0.4},
-    # "Genotype 4": {"I0": 0.7, "b": 0.1},
+    "Genotype 4": {"I0": 0.7, "b": 0.1},
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
@@ -679,7 +678,7 @@ antibody_concentration = 2
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
-psi_max = 0.8  # maximal growth rate
+psi_max = 0.3  # maximal growth rate
 
 time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 initial_populations = [1e7]
