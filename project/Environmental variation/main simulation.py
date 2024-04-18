@@ -664,7 +664,7 @@ def bold_text(text):
 #region
 
 def environmental_variation(A, B, t, L, R, epsilon):
-    return A * np.sin(2 * np.pi * t / (L * R)) + B * epsilon
+    return A * np.sin(2 * np.pi * (t + 5) / (L * R)) + B * epsilon
 
 def reaction_norm(I0, b, C):
     '''
@@ -685,12 +685,12 @@ def psi(a, psi_max, psi_min, zMIC, k):
 
     term = (a / zMIC)**k
     return (psi_max - psi_min) * (term / (term - psi_min/psi_max))
-    return psi_max - ((psi_max - psi_min) * term) / (term + 1)
+    return psi_max - ((psi_max - psi_min) * term) / (term + 1) # Giorgio's Implementation
 
 def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
     '''function in which growth rate is calculated depending on the environmental conditions'''
 
-    if population_is_below_threshold(X):
+    if population_is_below_threshold(X,100):
         X = 0
 
     if is_time_for_administration(t): 
@@ -709,10 +709,14 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     return max(actual_growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
-    return time % 10 < 3
+    return time % 10 < 5
 
-def population_is_below_threshold(x):
-    return x < 2
+# def is_time_for_delution(time):
+#     return time % 10 < 3
+
+def population_is_below_threshold(X, threshold):
+    return X < threshold
+
 
 def growth_rate_modifier(psi_max, params, env):
     return psi_max * reaction_norm(params["I0"], params["b"], env)
@@ -735,7 +739,7 @@ def death_rate_modifier(growth):
 #     "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 # }
 
-determistic = [0.3,]
+determistic = [0.3,0.6, 0.9]
 stochastic = [0.0,]
 lifespan = [10]
 relativeVariation = [1,8,16]
@@ -752,7 +756,7 @@ genotypes_params = {
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
-antibody_concentration = 2
+antibody_concentration = 10
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
@@ -788,7 +792,7 @@ initial_populations = [1e7]
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)
-# # simulator.yield_environment_plots()
+# simulator.yield_environment_plots()
 # simulator.yield_phenotypic_responses()
 # simulator.yield_reaction_norms()
 # simulator.yield_population_dynamics()
