@@ -14,3 +14,12 @@ def psi(a, psi_max, psi_min, zMIC, k):
 result = psi(a=2, psi_max= 12, psi_min= -2 ,zMIC= 2, k=0.8)
 
 print(result)
+
+
+antibiotic_frames = {
+    "exposure" : [],
+    "no exposure" : []
+}
+
+antibiotic_frames["exposure"].append('loia')
+print(antibiotic_frames["exposure"])

@@ -22,7 +22,7 @@ import ast
 
 class Environment():
 
-    def __init__(self, A = 1, B = 0.1, L = 10, R = 10, t = 100):
+    def __init__(self, A = 0.3, B = 0, L = 10, R = 1, t = 110):
         '''
         Environmental variation that individuals face, relative to their lifespam
         t = time, A = determinism magnitude, B = stochasticity magnitude
@@ -117,6 +117,13 @@ class Environment():
 
         fig, ax = plt.subplots(figsize=(14,6)) # prepare plot
 
+        # add environmental variation information
+        environmental_variation_layer_applier(time_frame,ax,self.variation)
+
+        # add antibiotic exposure information
+        antibiotic_exposure_layers_applier(time_frame,ax)
+
+        # plot dynamics
         for initial_population in initial_populations:
             for name, params in genotypes.items():
 
@@ -461,7 +468,8 @@ class Simulator():
 
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
-                            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                            X = odeint(dX_dt, initial_population, time_frame, 
+                                       args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
                             custom_plot(axs[row,column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
@@ -587,19 +595,19 @@ def construct_params(determistic, stochastic, lifespan, relativeVariation, times
 def antibiotic_exposure_layers_applier(period, ax):
 
     #create vectors for the different situations you wish to highlight
-    antibody_exposure_frame = [] 
-    antibody_NOT_exposure_frame =[]
+    antibiotic_exposure_frame = [] 
+    antibiotic_NOT_exposure_frame =[]
 
     for time in period:
         if is_time_for_administration(time) :
-            antibody_exposure_frame.append(int(time)) 
+            antibiotic_exposure_frame.append(int(time)) 
         else:
-            antibody_NOT_exposure_frame.append(int(time))
+            antibiotic_NOT_exposure_frame.append(int(time))
 
     # appending highlight to the plot
-    for i in set(antibody_exposure_frame):
+    for i in set(antibiotic_exposure_frame):
         ax.axvspan(i, i+1, facecolor='lightcoral', edgecolor='none', alpha=0.3 ) 
-    for i in set(antibody_NOT_exposure_frame):
+    for i in set(antibiotic_NOT_exposure_frame):
         ax.axvspan(i, i+1, facecolor='palegreen', edgecolor='none', alpha=0.3 )
 
     #create color patches for the legend to show
@@ -612,6 +620,22 @@ def antibiotic_exposure_layers_applier(period, ax):
     ax.legend(handles=handles)
 
     return ax
+
+def environmental_variation_layer_applier(time_frame, ax, variation):
+
+    if len(variation) < int(max(time_frame))+1:
+        raise Exception("your time frame is is bigger than time. Please reduce time frame or increase time..")
+    
+    variation_axe = ax.twinx()
+
+    # here we use max value of time frame for time reference
+    # but we add 1 in order to index correctly the variation list until the right time 
+    # and because x and y must be of the same length we have to raise also the the_frame reference  
+    custom_plot(variation_axe, np.arange(int(max(time_frame))+1), variation[:int(max(time_frame))+1], linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
+    variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
+
+
+
 
 def custom_plot(ax, xdim, ydim, **params):
 
@@ -664,7 +688,7 @@ def bold_text(text):
 #region
 
 def environmental_variation(A, B, t, L, R, epsilon):
-    return A * np.sin(2 * np.pi * (t + 5) / (L * R)) + B * epsilon
+    return A * np.sin(2 * np.pi * t / (L * R)) + B * epsilon
 
 def reaction_norm(I0, b, C):
     '''
@@ -690,7 +714,7 @@ def psi(a, psi_max, psi_min, zMIC, k):
 def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
     '''function in which growth rate is calculated depending on the environmental conditions'''
 
-    if population_is_below_threshold(X,100):
+    if population_is_below_threshold(X,10):
         X = 0
 
     if is_time_for_administration(t): 
@@ -709,7 +733,8 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     return max(actual_growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
-    return time % 10 < 5
+    # not statement reverses the antibiotic exposure time frames
+    return  not time % 10 < 5
 
 # def is_time_for_delution(time):
 #     return time % 10 < 3
@@ -749,7 +774,7 @@ environments_params = construct_params(determistic, stochastic, lifespan, relati
 
 
 genotypes_params = {
-    "Genotype 1": {"I0": 0.2, "b": 3},
+    "Genotype 1": {"I0": 0.2, "b": 0.8},
     # "Genotype 2": {"I0": 0.4, "b":0.6},
     # "Genotype 3": {"I0": 0.6, "b": 0.4},
     "Genotype 4": {"I0": 0.7, "b": 0.1},
@@ -761,9 +786,15 @@ psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
 psi_max = 0.3  # maximal growth rate
-
-time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 initial_populations = [1e7]
+
+
+
+# for all simulations and layer appliers to work properly
+# the splicing must be at least time+1 (e.g. 101 splices for time=100)
+time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
+
+
 
 #endregion
 
@@ -773,37 +804,44 @@ initial_populations = [1e7]
 
 # region test simulations
 
-#     #region environment construction
-# environment = Environment()
-# environment.trim()
-# environment.save()
-#     #endregion
+    #region environment construction
+environment = Environment()
+environment.trim()
+environment.save()
+    #endregion
 
-#     #region norms & responses to environmental variation
-# environment.gene_reaction_norms(genotypes_params)
-# environment.gene_responses(genotypes_params)
-#     #endregion
+    #region norms & responses to environmental variation
+environment.gene_reaction_norms(genotypes_params)
+environment.gene_responses(genotypes_params)
+    #endregion
 
-#     #region bacterial growth simulations
-# environment.run_simulation(genotypes_params, initial_populations)
-#     #endregion
+    #region bacterial growth simulations
+environment.run_simulation(genotypes_params, initial_populations)
+    #endregion
 
 #endregion
 
 #region main simulations
-simulator = Simulator(environments_params, genotypes_params)
+# simulator = Simulator(environments_params, genotypes_params)
 # simulator.yield_environment_plots()
 # simulator.yield_phenotypic_responses()
 # simulator.yield_reaction_norms()
 # simulator.yield_population_dynamics()
 # simulator.yield_environment_plots_with_antibiotic_frames()
 # simulator.yield_population_dynamics_with_antibiotic_frames()
-simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()
+# env, growth = simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()[2:4]
 # simulator.generate_report()
 # simulator.run()
 #endregion
+# print(env)
+# print(len(growth))
 
 
+# plt.plot(np.arange(len(env)), env)
+# plt.show()
+# print(len(antibiotic_frames["exposure"]))
+# print(len(antibiotic_frames["no exposure"]))
+# print(antibiotic_frames["no exposure"])
 
 
 
