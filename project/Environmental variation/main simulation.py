@@ -84,6 +84,8 @@ class Environment():
 
         fig, ax = self._create_plot() # create a copy of the current variation plot (keep clean the original)
 
+        custom_plot(ax, self.t, self.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
+
         for name, params in genotypes.items():
             I = reaction_norm(params["I0"], params["b"], self.variation)
             ax.plot(self.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
@@ -458,10 +460,8 @@ class Simulator():
             for column, env in enumerate(vector):
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
                     
-                    # plot environmental variation in the same plot with populations dynamics
-                    variation_axe = axs[row,column].twinx()
-                    custom_plot(variation_axe, time_frame, env.variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
-                    variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
+                    # add environmental variation information
+                    environmental_variation_layer_applier(time_frame,axs[row,column],env.variation)
                     
                     # add antibiotic exposure information
                     antibiotic_exposure_layers_applier(time_frame,axs[row,column])
@@ -474,12 +474,11 @@ class Simulator():
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
                 else:
-                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                         # plot environmental variation in the same plot with populations dynamics
-                        variation_axe = axs[row].twinx()
-                        custom_plot(variation_axe, time_frame, env.variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
-                        variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
-                    
+                    if len(row_vectors)>1: # check if the the only parameter of interest has more than one value
+
+                        # add environmental variation information
+                        environmental_variation_layer_applier(time_frame,axs[row],env.variation)
+                        
                         # add antibiotic exposure information
                         antibiotic_exposure_layers_applier(time_frame,axs[row])
                         
@@ -492,11 +491,9 @@ class Simulator():
                     
                     else:   # else another parameter has variation 
                         
-                        # plot environmental variation in the same plot with populations dynamics
-                        variation_axe = axs[column].twinx()
-                        custom_plot(variation_axe, time_frame, env.variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
-                        variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
-                        
+                        # add environmental variation information
+                        environmental_variation_layer_applier(time_frame,axs[column],env.variation)
+                                         
                         # add antibiotic exposure information
                         antibiotic_exposure_layers_applier(time_frame,axs[column]) 
                          
@@ -764,7 +761,7 @@ def death_rate_modifier(growth):
 #     "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
 # }
 
-determistic = [0.3,0.6, 0.9]
+determistic = [0.3,0.6,0.9]
 stochastic = [0.0,]
 lifespan = [10]
 relativeVariation = [1,8,16]
@@ -781,7 +778,7 @@ genotypes_params = {
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
-antibody_concentration = 10
+antibody_concentration = 2
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
@@ -791,8 +788,8 @@ initial_populations = [1e7]
 
 
 # for all simulations and layer appliers to work properly
-# the splicing must be at least time+1 (e.g. 101 splices for time=100)
-time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
+# the slicing must be at least time+1 (e.g. 101 slices for time=100)
+time_frame = np.linspace(0, 50, 101) #should be passed on odeint()
 
 
 
@@ -804,32 +801,32 @@ time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 
 # region test simulations
 
-    #region environment construction
-environment = Environment()
-environment.trim()
-environment.save()
-    #endregion
+#     #region environment construction
+# environment = Environment()
+# environment.trim()
+# environment.save()
+#     #endregion
 
-    #region norms & responses to environmental variation
-environment.gene_reaction_norms(genotypes_params)
-environment.gene_responses(genotypes_params)
-    #endregion
+#     #region norms & responses to environmental variation
+# environment.gene_reaction_norms(genotypes_params)
+# environment.gene_responses(genotypes_params)
+#     #endregion
 
-    #region bacterial growth simulations
-environment.run_simulation(genotypes_params, initial_populations)
-    #endregion
+#     #region bacterial growth simulations
+# environment.run_simulation(genotypes_params, initial_populations)
+#     #endregion
 
 #endregion
 
 #region main simulations
-# simulator = Simulator(environments_params, genotypes_params)
-# simulator.yield_environment_plots()
-# simulator.yield_phenotypic_responses()
-# simulator.yield_reaction_norms()
-# simulator.yield_population_dynamics()
-# simulator.yield_environment_plots_with_antibiotic_frames()
-# simulator.yield_population_dynamics_with_antibiotic_frames()
-# env, growth = simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()[2:4]
+simulator = Simulator(environments_params, genotypes_params)
+simulator.yield_environment_plots()
+simulator.yield_phenotypic_responses()
+simulator.yield_reaction_norms()
+simulator.yield_population_dynamics()
+simulator.yield_environment_plots_with_antibiotic_frames()
+simulator.yield_population_dynamics_with_antibiotic_frames()
+simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()
 # simulator.generate_report()
 # simulator.run()
 #endregion
@@ -837,11 +834,6 @@ environment.run_simulation(genotypes_params, initial_populations)
 # print(len(growth))
 
 
-# plt.plot(np.arange(len(env)), env)
-# plt.show()
-# print(len(antibiotic_frames["exposure"]))
-# print(len(antibiotic_frames["no exposure"]))
-# print(antibiotic_frames["no exposure"])
 
 
 
