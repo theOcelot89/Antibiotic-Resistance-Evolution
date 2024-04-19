@@ -22,7 +22,7 @@ import ast
 
 class Environment():
 
-    def __init__(self, A = 0.3, B = 0, L = 10, R = 1, t = 110):
+    def __init__(self, A = 0.9, B = 0, L = 10, R = 1, t = 110):
         '''
         Environmental variation that individuals face, relative to their lifespam
         t = time, A = determinism magnitude, B = stochasticity magnitude
@@ -49,7 +49,7 @@ class Environment():
     def _create_plot(self):
             
         fig, ax = plt.subplots(figsize=(12, 6))   
-        ax.plot(self.t, self.variation, label='Environmental Variation')
+        ax.plot(self.t, self.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
         pos = ax.get_position() #returns bbox in order to manipulate width/height
         ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
         ax.legend(bbox_to_anchor=(1.32, 1)) # place legend out of plot 
@@ -78,24 +78,23 @@ class Environment():
         # self.ax.set_title(initial_title) # set initial title again
         
     def save(self):
-        self.fig.savefig(f"Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png")
+        # self.fig.savefig(f"Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png")
+        save(f'./report/Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png')
 
     def gene_responses(self, genotypes):
 
         fig, ax = self._create_plot() # create a copy of the current variation plot (keep clean the original)
 
-        custom_plot(ax, self.t, self.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
-
         for name, params in genotypes.items():
             I = reaction_norm(params["I0"], params["b"], self.variation)
             ax.plot(self.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
 
-        ax.set_title('Phenotypic Response')
+        ax.set_title('Phenotypic Responses')
         ax.set_xlabel('Time (t)')
         ax.set_ylabel('Phenotypic response (I)')
         ax.legend(bbox_to_anchor=(1.34, 1))
 
-        fig.savefig("Responses to Environmental variation")
+        save(f'./report/Responses to Variation')
 
     def gene_reaction_norms(self, genotypes):
 
@@ -113,7 +112,7 @@ class Environment():
         ax.set_xlabel('Environmental Variation (E)')
         ax.set_ylabel('Phenotypic response (I)')
 
-        fig.savefig("Reaction Norms")
+        save(f'./report/Reaction Norms')
 
     def run_simulation(self, genotypes, initial_populations):
 
@@ -141,7 +140,8 @@ class Environment():
         ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
         ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
 
-        fig.savefig(f'Genotypes dynamics.png')
+        # fig.savefig(f'Genotypes dynamics.png')
+        save(f'./report/Population Dynamics')
 
 class Simulator():
     '''
@@ -188,7 +188,7 @@ class Simulator():
 
     def _plot_layer_constructor(self):
         # here i make a method of constructing layers of plots based on a parameter of interest (here is A)
-        # the different values of the parameter of interest become layers and all the other plots in the layer are scheduled based on 
+        # the different values of the parameter of interest become layers (rows/columns) and all the other plots in the layer are scheduled based on 
         # on these layers (hierarchy on the other axis is based on the line of the environments that are feeded and this 
         # functionality is created internally - i didnt code for this)
         # IMPORTANT!!! rows here is just a name convension. The code for plotting the layers horizontally/vertically
@@ -204,8 +204,8 @@ class Simulator():
             row_vector = [] # construct a row vector for every unique A variable 
             for env in self.environments:
                 if A == env.A:
-                    row_vector.append(env) # append to the row vector every env that has the A parameter
-            row_vectors.append(row_vector)
+                    row_vector.append(env) # append to the row vector every env that has the A value
+            row_vectors.append(row_vector) # append the whole row for that value to the stack
 
         # based on the number of rows and the length of a row i create dimensions to pass on the add_gridspec()
         rows = len(row_vectors) # turn rows of vectors into rows
@@ -778,7 +778,7 @@ genotypes_params = {
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
-antibody_concentration = 2
+antibody_concentration = 10
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
@@ -801,37 +801,36 @@ time_frame = np.linspace(0, 50, 101) #should be passed on odeint()
 
 # region test simulations
 
-#     #region environment construction
-# environment = Environment()
-# environment.trim()
-# environment.save()
-#     #endregion
+    #region environment construction
+environment = Environment()
+environment.trim()
+environment.save()
+    #endregion
 
-#     #region norms & responses to environmental variation
-# environment.gene_reaction_norms(genotypes_params)
-# environment.gene_responses(genotypes_params)
-#     #endregion
+    #region norms & responses to environmental variation
+environment.gene_reaction_norms(genotypes_params)
+environment.gene_responses(genotypes_params)
+    #endregion
 
-#     #region bacterial growth simulations
-# environment.run_simulation(genotypes_params, initial_populations)
-#     #endregion
+    #region bacterial growth simulations
+environment.run_simulation(genotypes_params, initial_populations)
+    #endregion
 
 #endregion
 
 #region main simulations
-simulator = Simulator(environments_params, genotypes_params)
-simulator.yield_environment_plots()
-simulator.yield_phenotypic_responses()
-simulator.yield_reaction_norms()
-simulator.yield_population_dynamics()
-simulator.yield_environment_plots_with_antibiotic_frames()
-simulator.yield_population_dynamics_with_antibiotic_frames()
-simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()
+# simulator = Simulator(environments_params, genotypes_params)
+# simulator.yield_environment_plots()
+# simulator.yield_phenotypic_responses()
+# simulator.yield_reaction_norms()
+# simulator.yield_population_dynamics()
+# simulator.yield_environment_plots_with_antibiotic_frames()
+# simulator.yield_population_dynamics_with_antibiotic_frames()
+# simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()
 # simulator.generate_report()
 # simulator.run()
 #endregion
-# print(env)
-# print(len(growth))
+
 
 
 
