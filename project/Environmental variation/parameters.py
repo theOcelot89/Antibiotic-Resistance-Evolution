@@ -11,8 +11,6 @@ lifespan = [10]
 relativeVariation = [1,3]
 timesteps = [101]
 
-environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
-
 
 genotypes_params = {
     "Genotype 1": {"I0": 0.1, "b": 0.9},
@@ -28,8 +26,17 @@ k = 0.8  # Using a single mean k value
 psi_max = 0.3  # maximal growth rate
 initial_populations = [1e7]
 
-
-
 # for all simulations and layer appliers to work properly
 # the slicing must be at least time+1 (e.g. 101 slices for time=100)
 time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
+
+environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
+
+
+if __name__ == "__main__":
+
+    for name, parameters in environments_params.items():
+        print(name, parameters)
+
+    for name, parameters in genotypes_params.items():    
+        print(name, parameters)

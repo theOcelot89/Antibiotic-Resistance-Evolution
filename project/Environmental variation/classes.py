@@ -1,13 +1,10 @@
 # ╔══════════════════════════════════════════════════╗
 # ║                   Classes                        ║
 # ╚══════════════════════════════════════════════════╝
-# from tools import *
+from tools import *
 from equations import *
 from parameters import *
 from scipy.integrate import odeint
-
-
-#region
 
 class Environment():
 
@@ -496,4 +493,3 @@ class Simulator():
 
         save('./report/Population Dynamics & antibiotic frames & env variation')
         return fig, axs
-#endregion
