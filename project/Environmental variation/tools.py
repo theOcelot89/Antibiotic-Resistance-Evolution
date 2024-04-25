@@ -10,6 +10,8 @@ import os
 from PIL import Image 
 import inspect
 import ast
+from equations import is_time_for_administration
+
 
 #region
 
@@ -130,9 +132,6 @@ def environmental_variation_layer_applier(time_frame, ax, variation):
     # and because x and y must be of the same length we have to raise also the the_frame reference  
     custom_plot(variation_axe, np.arange(int(max(time_frame))+1), variation[:int(max(time_frame))+1], linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
     variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
-
-
-
 
 def custom_plot(ax, xdim, ydim, **params):
 

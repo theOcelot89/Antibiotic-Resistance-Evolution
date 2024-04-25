@@ -8,7 +8,7 @@ from tools import *
 
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
-determistic = [0.3,0.6]
+determistic = [0.3,0.6,0.9]
 stochastic = [0.0,]
 lifespan = [10]
 relativeVariation = [1,3]
