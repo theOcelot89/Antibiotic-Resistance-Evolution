@@ -1,6 +1,3 @@
-# ╔══════════════════════════════════════════════════╗
-# ║                    Tools                         ║
-# ╚══════════════════════════════════════════════════╝
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -11,9 +8,9 @@ from PIL import Image
 import inspect
 import ast
 from equations import is_time_for_administration
-
-
-#region
+# ╔══════════════════════════════════════════════════╗
+# ║                    Tools                         ║
+# ╚══════════════════════════════════════════════════╝
 
 def fig2img(fig): 
     buf = io.BytesIO() 
@@ -176,4 +173,3 @@ def get_function_body(func):
 
 def bold_text(text):
   return "\033[1m" + text + "\033[0m"
-#endregion

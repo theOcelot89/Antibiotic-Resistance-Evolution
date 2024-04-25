@@ -1,7 +1,7 @@
 # ╔══════════════════════════════════════════════════╗
 # ║                   Classes                        ║
 # ╚══════════════════════════════════════════════════╝
-from tools import *
+# from tools import *
 from equations import *
 from parameters import *
 from scipy.integrate import odeint

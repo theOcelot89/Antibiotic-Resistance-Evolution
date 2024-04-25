@@ -1,9 +1,7 @@
+import numpy as np
 # ╔══════════════════════════════════════════════════╗
 # ║                  Equations                       ║
 # ╚══════════════════════════════════════════════════╝
-import numpy as np
-
-#region
 
 def environmental_variation(A, B, t, L, R, epsilon):
     return A * np.sin(2 * np.pi * t / (L * R)) + B * epsilon
@@ -54,16 +52,14 @@ def is_time_for_administration(time):
     # not statement reverses the antibiotic exposure time frames (simply put in front of expression)
     return time % 20 < 10
 
-# def is_time_for_delution(time):
-#     return time % 10 < 3
-
 def population_is_below_threshold(X, threshold):
     return X < threshold
-
 
 def growth_rate_modifier(psi_max, params, env):
     return psi_max * reaction_norm(params["I0"], params["b"], env)
 
 def death_rate_modifier(growth):
     return  - growth * 1.5
-#endregion
+
+# def is_time_for_delution(time):
+#     return time % 10 < 3

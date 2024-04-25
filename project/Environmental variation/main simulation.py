@@ -1,33 +1,16 @@
-from parameters import *
-from tools import *
-from equations import *
 from classes import *
-
-
-
-
 # ╔══════════════════════════════════════════════════╗
 # ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝
 
 # region test simulations
-
-    #region environment construction
 environment = Environment()
 environment.trim()
 environment.save()
-    #endregion
 
-    #region norms & responses to environmental variation
 environment.gene_reaction_norms(genotypes_params)
 environment.gene_responses(genotypes_params)
-    #endregion
-
-    #region bacterial growth simulations
 environment.run_simulation(genotypes_params, initial_populations)
-    #endregion
-
-#endregion
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params)

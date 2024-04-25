@@ -1,11 +1,8 @@
+import numpy as np
+from tools import *
 # ╔══════════════════════════════════════════════════╗
 # ║                  Parameters                      ║
 # ╚══════════════════════════════════════════════════╝
-import numpy as np
-from tools import *
-
-#region
-
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
 determistic = [0.3,0.6,0.9]
@@ -36,6 +33,3 @@ initial_populations = [1e7]
 # for all simulations and layer appliers to work properly
 # the slicing must be at least time+1 (e.g. 101 slices for time=100)
 time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
-
-
-#endregion
