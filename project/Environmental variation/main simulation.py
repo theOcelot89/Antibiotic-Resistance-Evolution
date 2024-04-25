@@ -13,6 +13,7 @@ from PIL import Image
 import pylab as pl
 import inspect
 import ast
+from parameters import *
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -754,43 +755,35 @@ def death_rate_modifier(growth):
 #region
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
-# environments_params = {
-#     "Env 1": {"A": 0.3, "B": 0.0, "L": 10, "R": 2, "t": 110},
-#     "Env 2": {"A": 0.6, "B": 0.0, "L": 10, "R": 2, "t": 110},
-#     "Env 3": {"A": 0.9, "B": 0.0, "L": 10, "R": 2, "t": 110},
-#     "Env 4": {"A": 1.2, "B": 0.0, "L": 10, "R": 2, "t": 110},
-#     "Env 5": {"A": 4, "B": 0.0, "L": 10, "R": 2, "t": 110},
+# determistic = [0.3,0.6]
+# stochastic = [0.0,]
+# lifespan = [10]
+# relativeVariation = [1,2]
+# timesteps = [101]
+
+# environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
+
+
+# genotypes_params = {
+#     "Genotype 1": {"I0": 0.1, "b": 0.9},
+#     # "Genotype 2": {"I0": 0.4, "b":0.6},
+#     "Genotype 3": {"I0": 0.5, "b": 0.4},
+#     "Genotype 4": {"I0": 0.8, "b": 0},
+#     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 # }
 
-determistic = [0.3,0.6,0.9]
-stochastic = [0.0,]
-lifespan = [10]
-relativeVariation = [1,2,3]
-timesteps = [101]
-
-environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
-
-
-genotypes_params = {
-    "Genotype 1": {"I0": 0.1, "b": 0.9},
-    # "Genotype 2": {"I0": 0.4, "b":0.6},
-    "Genotype 3": {"I0": 0.5, "b": 0.4},
-    "Genotype 4": {"I0": 0.8, "b": 0},
-    # "Genotype 5": {"I0": 0.2, "b": 1.4},    
-}
-
-antibody_concentration = 100
-psi_min = -2 # maximum death rate
-zMIC = 2 # concentration in which net growth rate is zero
-k = 0.8  # Using a single mean k value
-psi_max = 0.3  # maximal growth rate
-initial_populations = [1e7]
+# antibody_concentration = 100
+# psi_min = -2 # maximum death rate
+# zMIC = 2 # concentration in which net growth rate is zero
+# k = 0.8  # Using a single mean k value
+# psi_max = 0.3  # maximal growth rate
+# initial_populations = [1e7]
 
 
 
-# for all simulations and layer appliers to work properly
-# the slicing must be at least time+1 (e.g. 101 slices for time=100)
-time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
+# # for all simulations and layer appliers to work properly
+# # the slicing must be at least time+1 (e.g. 101 slices for time=100)
+# time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 
 
 
@@ -803,18 +796,18 @@ time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 # region test simulations
 
     #region environment construction
-# environment = Environment()
-# environment.trim()
-# environment.save()
-#     #endregion
+environment = Environment()
+environment.trim()
+environment.save()
+    #endregion
 
-#     #region norms & responses to environmental variation
-# environment.gene_reaction_norms(genotypes_params)
-# environment.gene_responses(genotypes_params)
-#     #endregion
+    #region norms & responses to environmental variation
+environment.gene_reaction_norms(genotypes_params)
+environment.gene_responses(genotypes_params)
+    #endregion
 
-#     #region bacterial growth simulations
-# environment.run_simulation(genotypes_params, initial_populations)
+    #region bacterial growth simulations
+environment.run_simulation(genotypes_params, initial_populations)
     #endregion
 
 #endregion
