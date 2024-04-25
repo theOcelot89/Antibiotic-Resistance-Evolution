@@ -460,12 +460,6 @@ class Simulator():
             for column, env in enumerate(vector):
                 if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
                     
-                    # add environmental variation information
-                    environmental_variation_layer_applier(time_frame,axs[row,column],env.variation)
-                    
-                    # add antibiotic exposure information
-                    antibiotic_exposure_layers_applier(time_frame,axs[row,column])
-
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
                             X = odeint(dX_dt, initial_population, time_frame, 
@@ -473,6 +467,13 @@ class Simulator():
                             custom_plot(axs[row,column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
+                    
+                    # add environmental variation information
+                    environmental_variation_layer_applier(time_frame,axs[row,column],env.variation)
+                    
+                    # add antibiotic exposure information
+                    antibiotic_exposure_layers_applier(time_frame,axs[row,column])
+
                 else:
                     if len(row_vectors)>1: # check if the the only parameter of interest has more than one value
 
@@ -730,8 +731,8 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     return max(actual_growth_rate, -X / 0.04)
 
 def is_time_for_administration(time):
-    # not statement reverses the antibiotic exposure time frames
-    return  not time % 10 < 5
+    # not statement reverses the antibiotic exposure time frames (simply put in front of expression)
+    return time % 20 < 10
 
 # def is_time_for_delution(time):
 #     return time % 10 < 3
@@ -744,7 +745,7 @@ def growth_rate_modifier(psi_max, params, env):
     return psi_max * reaction_norm(params["I0"], params["b"], env)
 
 def death_rate_modifier(growth):
-    return  - growth * 200
+    return  - growth * 1.5
 #endregion
 
 # ╔══════════════════════════════════════════════════╗
@@ -764,21 +765,21 @@ def death_rate_modifier(growth):
 determistic = [0.3,0.6,0.9]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,8,16]
+relativeVariation = [1,2,3]
 timesteps = [101]
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
 
 
 genotypes_params = {
-    "Genotype 1": {"I0": 0.2, "b": 0.8},
+    "Genotype 1": {"I0": 0.1, "b": 0.9},
     # "Genotype 2": {"I0": 0.4, "b":0.6},
-    # "Genotype 3": {"I0": 0.6, "b": 0.4},
-    "Genotype 4": {"I0": 0.7, "b": 0.1},
+    "Genotype 3": {"I0": 0.5, "b": 0.4},
+    "Genotype 4": {"I0": 0.8, "b": 0},
     # "Genotype 5": {"I0": 0.2, "b": 1.4},    
 }
 
-antibody_concentration = 10
+antibody_concentration = 100
 psi_min = -2 # maximum death rate
 zMIC = 2 # concentration in which net growth rate is zero
 k = 0.8  # Using a single mean k value
@@ -789,7 +790,7 @@ initial_populations = [1e7]
 
 # for all simulations and layer appliers to work properly
 # the slicing must be at least time+1 (e.g. 101 slices for time=100)
-time_frame = np.linspace(0, 50, 101) #should be passed on odeint()
+time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 
 
 
@@ -802,31 +803,31 @@ time_frame = np.linspace(0, 50, 101) #should be passed on odeint()
 # region test simulations
 
     #region environment construction
-environment = Environment()
-environment.trim()
-environment.save()
-    #endregion
+# environment = Environment()
+# environment.trim()
+# environment.save()
+#     #endregion
 
-    #region norms & responses to environmental variation
-environment.gene_reaction_norms(genotypes_params)
-environment.gene_responses(genotypes_params)
-    #endregion
+#     #region norms & responses to environmental variation
+# environment.gene_reaction_norms(genotypes_params)
+# environment.gene_responses(genotypes_params)
+#     #endregion
 
-    #region bacterial growth simulations
-environment.run_simulation(genotypes_params, initial_populations)
+#     #region bacterial growth simulations
+# environment.run_simulation(genotypes_params, initial_populations)
     #endregion
 
 #endregion
 
 #region main simulations
-# simulator = Simulator(environments_params, genotypes_params)
-# simulator.yield_environment_plots()
-# simulator.yield_phenotypic_responses()
-# simulator.yield_reaction_norms()
-# simulator.yield_population_dynamics()
-# simulator.yield_environment_plots_with_antibiotic_frames()
-# simulator.yield_population_dynamics_with_antibiotic_frames()
-# simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()
+simulator = Simulator(environments_params, genotypes_params)
+simulator.yield_environment_plots()
+simulator.yield_phenotypic_responses()
+simulator.yield_reaction_norms()
+simulator.yield_population_dynamics()
+simulator.yield_environment_plots_with_antibiotic_frames()
+simulator.yield_population_dynamics_with_antibiotic_frames()
+simulator.yield_population_dynamics_with_antibiotic_frames_env_variation()
 # simulator.generate_report()
 # simulator.run()
 #endregion
