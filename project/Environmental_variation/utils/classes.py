@@ -250,11 +250,12 @@ class Simulator():
         save('./report/report', dpi=1000)
 
     def yield_environment_plots(self):
-        # this technique is based on matplots basic tutorial
-        # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+        
         
         row_vectors, rows, columns = self._plot_layer_constructor()
 
+        # this technique is based on matplots basic tutorial
+        # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
         fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
         gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
         axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
@@ -350,6 +351,17 @@ class Simulator():
     
     def yield_population_dynamics(self):
 
+        # Unpacking the dictionary into variables
+        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
+            antibiotic_framework["zMIC"],
+            antibiotic_framework["Antibiotic Concentration"],
+            antibiotic_framework["psi_max"],
+            antibiotic_framework["psi_min"],
+            antibiotic_framework["k"],
+            antibiotic_framework["time frame"],
+            antibiotic_framework["Initial Populations"]
+        )
+
         row_vectors, rows, columns = self._plot_layer_constructor()
 
         fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
@@ -361,7 +373,7 @@ class Simulator():
                         f"Ψmax={psi_max}, "
                         f"Ψmin={psi_min}, "
                         f"MIC={zMIC}, "
-                        f"c={antibody_concentration} \n"
+                        f"c={antibiotic_concentration} \n"
                         r"$\bf{" + "Growth  Rate  Modifier:" + "}$" + f"{get_function_body(growth_rate_modifier)} \n"
                         r"$\bf{" + "Death  Rate  Modifier:" + "}$" + f"{get_function_body(death_rate_modifier)}"
                         ),
@@ -375,7 +387,7 @@ class Simulator():
                     
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
-                            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                            X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
                             custom_plot(axs[row,column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
@@ -383,7 +395,7 @@ class Simulator():
                     if len(row_vectors)>1: # check if the the parameter of interest has more than one value
                         for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
                                 custom_plot(axs[row], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                                 axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
@@ -391,7 +403,7 @@ class Simulator():
                     else:   # else another parameter has variation 
                          for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
                                 custom_plot(axs[column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))                                
                                 axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
@@ -404,6 +416,8 @@ class Simulator():
         # problem is that custom save() doesnt take this fig as current and it saves an irrelevant plot of the past
         # when tried to activate fig with plt.figure(fig) saving it causes a traceback error with save() (somethings broken with plt.close())
         
+        # Unpacking the dictionary into variables
+        time_frame= (antibiotic_framework["time frame"])
 
         fig, axs = self.yield_environment_plots()
         
@@ -428,6 +442,7 @@ class Simulator():
         # problem is that custom save() doesnt take this fig as current and it saves an irrelevant plot of the past
         # when tried to activate fig with plt.figure(fig) saving it causes a traceback error with save() (somethings broken with plt.close())
 
+        time_frame= (antibiotic_framework["time frame"])
         fig, axs = self.yield_population_dynamics()
 
         if axs.ndim > 1:
@@ -442,6 +457,17 @@ class Simulator():
         return fig, axs
 
     def yield_population_dynamics_with_antibiotic_frames_env_variation(self):
+
+        # Unpacking the dictionary into variables
+        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
+            antibiotic_framework["zMIC"],
+            antibiotic_framework["Antibiotic Concentration"],
+            antibiotic_framework["psi_max"],
+            antibiotic_framework["psi_min"],
+            antibiotic_framework["k"],
+            antibiotic_framework["time frame"],
+            antibiotic_framework["Initial Populations"]
+        )
         
         row_vectors, rows, columns = self._plot_layer_constructor()
 
@@ -454,7 +480,7 @@ class Simulator():
                         f"Ψmax={psi_max}, "
                         f"Ψmin={psi_min}, "
                         f"MIC={zMIC}, "
-                        f"c={antibody_concentration} \n"
+                        f"c={antibiotic_concentration} \n"
                         r"$\bf{" + "Growth  Rate  Modifier:" + "}$" + f"{get_function_body(growth_rate_modifier)} \n"
                         r"$\bf{" + "Death  Rate  Modifier:" + "}$" + f"{get_function_body(death_rate_modifier)}"
                         ),
@@ -469,7 +495,7 @@ class Simulator():
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
                             X = odeint(dX_dt, initial_population, time_frame, 
-                                       args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                                       args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
                             custom_plot(axs[row,column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
@@ -491,7 +517,7 @@ class Simulator():
                         
                         for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
                                 custom_plot(axs[row], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                                 axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
@@ -506,7 +532,7 @@ class Simulator():
                          
                         for initial_population in initial_populations:
                             for name, params in self.genotypes.items():
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibody_concentration)) # args will be passed down to dX_dt
+                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
                                 custom_plot(axs[column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))                                
                                 axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
                                 axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")

@@ -8,7 +8,7 @@ from .tools import construct_params
 determistic = [0.3,0.6,0.9]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,3]
+relativeVariation = [1,3,5,10,20]
 timesteps = [101]
 
 
