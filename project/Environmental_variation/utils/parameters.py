@@ -5,10 +5,10 @@ from .tools import construct_params
 # ╚══════════════════════════════════════════════════╝
 # All environments must have different keys otherwise will be overwritten
 # All environments must have at least one different value otherwise only the last will be saved
-determistic = [0.3,0.6,0.9]
+determistic = [0.9]
 stochastic = [0.0,]
 lifespan = [10]
-relativeVariation = [1,3,5,10,20]
+relativeVariation = [10]
 timesteps = [101]
 
 
