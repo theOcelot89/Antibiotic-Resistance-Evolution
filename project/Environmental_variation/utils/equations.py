@@ -50,7 +50,7 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
 
 def is_time_for_administration(time):
     # not statement reverses the antibiotic exposure time frames (simply put in front of expression)
-    return time % 20 < 10
+    return time % 10 < 5
 
 def population_is_below_threshold(X, threshold):
     return X < threshold

@@ -19,16 +19,28 @@ genotypes_params = {
 }
 
 # antibiotic response curve
-antibody_concentration = 100
-psi_min = -2 # maximum death rate
-zMIC = 2 # concentration in which net growth rate is zero
-k = 0.8  # Using a single mean k value
-psi_max = 0.3  # maximal growth rate
-initial_populations = [1e7]
+# antibody_concentration = 100
+# psi_min = -2 # maximum death rate
+# zMIC = 2 # concentration in which net growth rate is zero
+# k = 0.8  # Using a single mean k value
+# psi_max = 0.3  # maximal growth rate
+# initial_populations = [1e7]
 
 # for all simulations and layer appliers to work properly
 # the slicing must be at least time+1 (e.g. 101 slices for time=100)
-time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
+# time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
+
+antibiotic_framework = {
+    "zMIC" : 2,
+    "Antibiotic Concentration" : 100,
+    "psi_max" : 0.3,
+    "psi_min" : -2,
+    "k" : 0.8,
+    "time frame" : np.linspace(0, 100, 101),
+    "Initial Populations": [1e7]
+}
+
+
 
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
 

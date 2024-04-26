@@ -6,12 +6,6 @@ from .parameters import *
 from .tools import *
 from scipy.integrate import odeint
 
-# from .equations import *
-# from .parameters import *
-# from .tools import *
-# from scipy.integrate import odeint
-
-
 if __name__ == "__main__":
     print('classes called directly nothing to show..')
 
@@ -113,7 +107,18 @@ class Environment():
 
         save(f'./report/Reaction Norms')
 
-    def run_simulation(self, genotypes, initial_populations):
+    def run_simulation(self, genotypes, antibiotic_framework):
+        
+        # Unpacking the dictionary into variables
+        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
+        antibiotic_framework["zMIC"],
+        antibiotic_framework["Antibiotic Concentration"],
+        antibiotic_framework["psi_max"],
+        antibiotic_framework["psi_min"],
+        antibiotic_framework["k"],
+        antibiotic_framework["time frame"],
+        antibiotic_framework["Initial Populations"]
+        )
 
         fig, ax = plt.subplots(figsize=(14,6)) # prepare plot
 
@@ -127,7 +132,8 @@ class Environment():
         for initial_population in initial_populations:
             for name, params in genotypes.items():
 
-                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, self,antibody_concentration)) # args will be passed down to dX_dt
+                X = odeint(dX_dt, initial_population, time_frame,
+                            args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
                 ax.plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
 
         ax.set_xlabel('Time')
@@ -148,10 +154,11 @@ class Simulator():
     It produces plots for environmental variation, genotype responses & norms and population dynamics
     based on some predefined equations.
     '''
-    def __init__(self, environment_params, genotype_params):
+    def __init__(self, environment_params, genotype_params, antibiotic_framework):
 
         self.environment_params = environment_params
         self.genotypes = genotype_params
+        self.antibiotic_framework = antibiotic_framework
 
         self.environments = self._yield_environments() # immediatly create environments
         print(f"simulator contains {len(self.environments)} environments & {len(self.genotypes)} genotypes.")
