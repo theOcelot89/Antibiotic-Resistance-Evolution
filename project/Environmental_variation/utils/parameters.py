@@ -1,5 +1,5 @@
 import numpy as np
-from tools import *
+from .tools import construct_params
 # ╔══════════════════════════════════════════════════╗
 # ║                  Parameters                      ║
 # ╚══════════════════════════════════════════════════╝

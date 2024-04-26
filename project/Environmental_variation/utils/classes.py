@@ -1,11 +1,24 @@
 # ╔══════════════════════════════════════════════════╗
 # ║                   Classes                        ║
 # ╚══════════════════════════════════════════════════╝
-from tools import *
-from equations import *
-from parameters import *
+from .equations import *
+from .parameters import *
+from .tools import *
 from scipy.integrate import odeint
 
+# from .equations import *
+# from .parameters import *
+# from .tools import *
+# from scipy.integrate import odeint
+
+
+if __name__ == "__main__":
+    print('classes called directly nothing to show..')
+
+else:
+    print('classes loaded..')
+
+    
 class Environment():
 
     def __init__(self, A = 0.9, B = 0, L = 10, R = 1, t = 110):
@@ -493,3 +506,5 @@ class Simulator():
 
         save('./report/Population Dynamics & antibiotic frames & env variation')
         return fig, axs
+
+

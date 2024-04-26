@@ -1,3 +1,0 @@
-from loia import *
-
-echo()

@@ -1,5 +1,6 @@
-from classes import *
-from parameters import *
+from utils.classes import *
+
+
 # ╔══════════════════════════════════════════════════╗
 # ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝

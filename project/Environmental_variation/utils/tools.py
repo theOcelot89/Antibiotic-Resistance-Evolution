@@ -7,7 +7,8 @@ import os
 from PIL import Image 
 import inspect
 import ast
-from equations import is_time_for_administration
+
+from .equations import is_time_for_administration
 # ╔══════════════════════════════════════════════════╗
 # ║                    Tools                         ║
 # ╚══════════════════════════════════════════════════╝
