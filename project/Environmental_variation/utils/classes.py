@@ -125,12 +125,7 @@ class Environment():
         )
 
         fig, ax = plt.subplots(figsize=(14,6)) # prepare plot
-
-        # add environmental variation information
-        environmental_variation_layer_applier(time_frame,ax,self.variation)
-
-        # add antibiotic exposure information
-        antibiotic_exposure_layers_applier(time_frame,ax)
+     
 
         # plot dynamics
         for initial_population in initial_populations:
@@ -145,12 +140,26 @@ class Environment():
         ax.set_yscale('log')
         ax.set_ylim(1, 1e9)   
 
-        pos = ax.get_position() #returns bbox in order to manipulate width/height
-        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
+        # pos = ax.get_position() #returns bbox in order to manipulate width/height
+        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        # ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
+
+        save(f'./report/Population Dynamics', close= False)
+
+        # add antibiotic exposure information
+        antibiotic_exposure_layers_applier(time_frame,ax)
+        save(f'./report/Population Dynamics.Antibiotic Layers',close= False)
+
+        # add environmental variation information
+        environmental_variation_layer_applier(time_frame, ax, self.variation)
+        save(f'./report/Population Dynamics.Antibiotic Layers.Variation',close= False)
+
+
+
+
 
         # fig.savefig(f'Genotypes dynamics.png')
-        save(f'./report/Population Dynamics')
+        # save(f'./report/Population Dynamics')
 
 class Simulator():
     '''

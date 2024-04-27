@@ -120,6 +120,9 @@ def antibiotic_exposure_layers_applier(period, ax):
 
 def environmental_variation_layer_applier(time_frame, ax, variation):
 
+    print(len(variation))
+    print(int(max(time_frame)))
+
     if len(variation) < int(max(time_frame))+1:
         raise Exception("your time frame is is bigger than time. Please reduce time frame or increase time..")
     
@@ -127,7 +130,7 @@ def environmental_variation_layer_applier(time_frame, ax, variation):
 
     # here we use max value of time frame for time reference
     # but we add 1 in order to index correctly the variation list until the right time 
-    # and because x and y must be of the same length we have to raise also the the_frame reference  
+    # and because x and y must be of the same length we have to raise also the time_frame reference  
     custom_plot(variation_axe, np.arange(int(max(time_frame))+1), variation[:int(max(time_frame))+1], linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
     variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
 
