@@ -177,3 +177,11 @@ def get_function_body(func):
 
 def bold_text(text):
   return "\033[1m" + text + "\033[0m"
+
+def is_called_from_another_function():
+    stack = inspect.stack()
+    if len(stack) > 2:
+        calling_function = stack[2].function
+        if calling_function != "<module>":  # Exclude calls from module level
+            return True
+    return False

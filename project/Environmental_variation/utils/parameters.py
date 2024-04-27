@@ -31,7 +31,7 @@ genotypes_params = {
 # time_frame = np.linspace(0, 100, 101) #should be passed on odeint()
 
 antibiotic_framework = {
-    "zMIC" : 2,
+    "zMIC" : 99,
     "Antibiotic Concentration" : 100,
     "psi_max" : 0.3,
     "psi_min" : -2,

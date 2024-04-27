@@ -12,7 +12,11 @@ environment.save()
 
 # environment.gene_reaction_norms(genotypes_params)
 # environment.gene_responses(genotypes_params)
-environment.run_simulation(genotypes_params, antibiotic_framework)
+
+environment.population_dynamics(genotypes_params,antibiotic_framework)
+environment.population_dynamics_antibiotic_frames(genotypes_params,antibiotic_framework)
+environment.population_dynamics_antibiotic_frames_env_varation(genotypes_params, antibiotic_framework)
+# environment.run_simulation(genotypes_params, antibiotic_framework)
 
 #region main simulations
 # simulator = Simulator(environments_params, genotypes_params, antibiotic_framework)
