@@ -71,7 +71,6 @@ class Environment():
         # self.ax.set_title(initial_title) # set initial title again
         
     def save(self):
-        # self.fig.savefig(f"Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png")
         save(f'./report/Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png')
 
     def gene_responses(self, genotypes):
@@ -156,7 +155,7 @@ class Environment():
 
     def population_dynamics_antibiotic_frames(self, genotypes, antibiotic_framework):
         
-        fig, ax = self.population_dynamics(genotypes, antibiotic_framework)  
+        fig, ax = self.population_dynamics(genotypes, antibiotic_framework)
 
         time_frame = antibiotic_framework["time frame"]
 
@@ -181,56 +180,12 @@ class Environment():
 
         return fig, ax
 
-
     def run_simulation(self, genotypes, antibiotic_framework):
         
-        # Unpacking the dictionary into variables
-        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
-        antibiotic_framework["zMIC"],
-        antibiotic_framework["Antibiotic Concentration"],
-        antibiotic_framework["psi_max"],
-        antibiotic_framework["psi_min"],
-        antibiotic_framework["k"],
-        antibiotic_framework["time frame"],
-        antibiotic_framework["Initial Populations"]
-        )
-
-        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot
-     
-        
-        # plot dynamics
-        for initial_population in initial_populations:
-            for name, params in genotypes.items():
-
-                X = odeint(dX_dt, initial_population, time_frame,
-                            args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
-                ax.plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
-
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Bacterial Density')
-        ax.set_yscale('log')
-        ax.set_ylim(1, 1e9)   
-
-        # pos = ax.get_position() #returns bbox in order to manipulate width/height
-        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        # ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
-
-        save(f'./report/Population Dynamics', close= False)
-
-        # add antibiotic exposure information
-        antibiotic_exposure_layers_applier(time_frame,ax)
-        save(f'./report/Population Dynamics.Antibiotic Layers',close= False)
-
-        # add environmental variation information
-        environmental_variation_layer_applier(time_frame, ax, self.variation)
-        save(f'./report/Population Dynamics.Antibiotic Layers.Variation',close= False)
-
-
-
-
-
-        # fig.savefig(f'Genotypes dynamics.png')
-        # save(f'./report/Population Dynamics')
+        self.save()
+        self.gene_reaction_norms(genotypes_params)
+        self.gene_responses(genotypes)
+        self.population_dynamics_antibiotic_frames_env_varation(genotypes_params,antibiotic_framework)
 
 class Simulator():
     '''
