@@ -455,9 +455,15 @@ class Simulator():
         fig.text(0.5, 0.07, "Time (t)", fontsize=20) # put only 1 x label
         fig.text(0.05, 0.5, "Bacterial density", rotation="vertical", va="center", fontsize=20) # put only 1 y label
 
-        for row, vector in enumerate(row_vectors):
-            for column, env in enumerate(vector):
-                if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
+        # check for only 1 environment
+        if len(self.environments) == 1:
+            fig, ax = self.environments[0].population_dynamics(self.genotypes, self.antibiotic_framework)
+            plt.figure(fig) # activate the current figure in order to save correctly       
+
+        # check if grid has two dimensions (+unique values for the another parameter )
+        elif axs.ndim > 1: 
+            for row, vector in enumerate(row_vectors):
+                for column, env in enumerate(vector):
                     
                     for initial_population in initial_populations:
                         for name, params in self.genotypes.items():
@@ -465,22 +471,28 @@ class Simulator():
                             custom_plot(axs[row,column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
                             axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                             axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                       
-                else:
-                    if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                        for initial_population in initial_populations:
-                            for name, params in self.genotypes.items():
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
-                                custom_plot(axs[row], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
-                                axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
-                                axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
-                    
-                    else:   # else another parameter has variation 
-                         for initial_population in initial_populations:
-                            for name, params in self.genotypes.items():
-                                X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
-                                custom_plot(axs[column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))                                
-                                axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
-                                axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+       
+       # check if only the parameter of interest has different values          
+        elif len(row_vectors)>1: 
+             for row, vector in enumerate(row_vectors):
+                env = vector[0]
+                for initial_population in initial_populations:
+                    for name, params in self.genotypes.items():
+                        X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
+                        custom_plot(axs[row], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))
+                        axs[row].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
+                        axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")                
+
+        # or another parameter has different values            
+        else:
+            for column, env in enumerate(row_vectors[0]): 
+                         
+                for initial_population in initial_populations:
+                    for name, params in self.genotypes.items():
+                        X = odeint(dX_dt, initial_population, time_frame, args=(psi_max, psi_min, zMIC, k, params, env, antibiotic_concentration)) # args will be passed down to dX_dt
+                        custom_plot(axs[column], time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} Genotype Params: I0={params["I0"]}, b={params["b"]}', legend_title= f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}", ylim=(1,1e10), yscale=('log'))                                
+                        axs[0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
+                        axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
         
         save('./report/Stacked Population Dynamics')
         return fig, axs
