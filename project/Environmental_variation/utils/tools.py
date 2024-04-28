@@ -120,8 +120,8 @@ def antibiotic_exposure_layers_applier(period, ax):
 
 def environmental_variation_layer_applier(time_frame, ax, variation):
 
-    print(len(variation))
-    print(int(max(time_frame)))
+    # print(len(variation))
+    # print(int(max(time_frame)))
 
     if len(variation) < int(max(time_frame))+1:
         raise Exception("your time frame is is bigger than time. Please reduce time frame or increase time..")

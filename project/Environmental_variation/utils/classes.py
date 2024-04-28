@@ -290,41 +290,48 @@ class Simulator():
 
     def yield_environment_plots(self):
         
-        # code will not work with one environment, so i put this condition
-        if  len(self.environments) == 1:
+        row_vectors, rows, columns = self._plot_layer_constructor()
+
+        # this technique is based on matplots basic tutorial
+        # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.suptitle(u"Environmental Variations\nE\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30, y= 0.95)
+        fig.text(0.5, 0.07, "Time (t)", va="center",  fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Environmental variation (E)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
+
+        # case of 1 environment
+        if len(self.environments) == 1:
             fig, axs  = self.environments[0].fig, self.environments[0].ax
-            save('./report/Environment')
-        else:
-
-            row_vectors, rows, columns = self._plot_layer_constructor()
-            # this technique is based on matplots basic tutorial
-            # https://matplotlib.org/stable/gallery/subplots_axes_and_figures/subplots_demo.html
-            fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
-            gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
-            axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-            fig.suptitle(u"Environmental Variations\nE\u209C = A·sin(2πt/LR) + B·ε", fontsize = 30, y= 0.95)
-            fig.text(0.5, 0.07, "Time (t)", va="center",  fontsize=20) # put only 1 x label
-            fig.text(0.05, 0.5, "Environmental variation (E)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
-
+            plt.figure(fig) # activate the current figure in order to save correctly
+        
+        # check if grid has two dimensions (+unique values for the another parameter )
+        elif axs.ndim > 1: 
             for row, vector in enumerate(row_vectors): # iterate on the stack of rows
                 for column, env in enumerate(vector): # iterate on the row itself
-                    if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                        custom_plot(axs[row,column],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
-                        axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
-                        axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+                    custom_plot(axs[row,column],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
+                    axs[row,0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
+                    axs[-1,column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+        
+        # check if only the parameter of interest has different values
+        elif len(row_vectors)>1:    
+            # set label value for the one dimension 
+            axs[-1].set_xlabel(f"R ={row_vectors[0][0].R}", rotation="horizontal", fontsize=14, weight="bold")
+            for row, vector in enumerate(row_vectors):
+                env = vector[0]
+                custom_plot(axs[row],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
+                axs[row].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
 
-                    else:   # if not, it has one dimension
-                        if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                            custom_plot(axs[row],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
-                            axs[row].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
-                            axs[-1].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
+        # else the parameters of interest has only one value and some other parameters has more values
+        else:
+            # set label value for the one dimension 
+            axs[0].set_ylabel(f"A ={row_vectors[0][0].A}", rotation="horizontal", fontsize=14, weight="bold")
+            for column, env in enumerate(row_vectors[0]): 
+                custom_plot(axs[column],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
+                axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
 
-                        else:               # else another parameter has variation     
-                            custom_plot(axs[column],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
-                            axs[0].set_ylabel(f"A ={vector[0].A}", rotation="horizontal", fontsize=14, weight="bold")
-                            axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
-            
-            save('./report/Stacked Environments')
+        save('./report/Stacked Environments')
         return fig, axs
 
     def yield_reaction_norms(self):
