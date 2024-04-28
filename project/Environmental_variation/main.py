@@ -20,9 +20,9 @@ from utils.classes import *
 
 #region main simulations
 simulator = Simulator(environments_params, genotypes_params, antibiotic_framework)
-simulator.yield_environment_plots()
+# simulator.yield_environment_plots()
 # simulator.yield_phenotypic_responses()
-# simulator.yield_reaction_norms()
+simulator.yield_reaction_norms()
 # simulator.yield_population_dynamics()
 # simulator.yield_environment_plots_with_antibiotic_frames()
 # simulator.yield_population_dynamics_with_antibiotic_frames()
