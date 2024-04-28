@@ -86,7 +86,7 @@ class Environment():
         ax.set_ylabel('Phenotypic response (I)')
         ax.legend(bbox_to_anchor=(1.34, 1))
 
-        save(f'./report/Responses to Variation')
+        save(f'./report/Responses to Variation', close=False)
 
         return fig
 
@@ -379,40 +379,48 @@ class Simulator():
     
     def yield_phenotypic_responses(self):
 
-        if  len(self.environments) == 1:
+        row_vectors, rows, columns = self._plot_layer_constructor()
+
+        fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
+        gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
+        axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
+        fig.suptitle(u"Phenotypic Responses\n I\u209C=I\u2080 + b·E\u209C", fontsize = 30, y= 0.95)
+        fig.text(0.5, 0.07, "Time (t)",   fontsize=20) # put only 1 x label
+        fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
+
+
+        # case of 1 environment
+        if len(self.environments) == 1:
             fig = self.environments[0].gene_responses(self.genotypes)
+            plt.figure(fig) # activate the current figure in order to save correctly
 
-        else:
-        
-            row_vectors, rows, columns = self._plot_layer_constructor()
-
-            fig = plt.figure(figsize=(columns*8, rows*6)) # empty figure for template
-            gs = fig.add_gridspec(rows, columns, hspace=0, wspace=0) # grid with dimensions & space between plots
-            axs = gs.subplots(sharey=True) # sharing the same y range (i think based on the bigger value)
-            fig.suptitle(u"Phenotypic Responses\n I\u209C=I\u2080 + b·E\u209C", fontsize = 30, y= 0.95)
-            fig.text(0.5, 0.07, "Time (t)",   fontsize=20) # put only 1 x label
-            fig.text(0.05, 0.5, "Response (I)", rotation="vertical", va="center", fontsize=20) # put only 1 y label
-
+        # check if grid has two dimensions (+unique values for the another parameter )
+        elif axs.ndim > 1: 
             for row, vector in enumerate(row_vectors):
                 for column, env in enumerate(vector):
-                    if axs.ndim > 1: # check if grid has two dimensions (+unique values for the another parameter )
-                        custom_plot(axs[row,column], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
-                        for name, params in self.genotypes.items():
-                            I = reaction_norm(params["I0"], params["b"], env.variation)
-                            custom_plot(axs[row,column], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
-                    else:
-                        if len(row_vectors)>1: # check if the the parameter of interest has more than one value
-                            custom_plot(axs[row], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
-                            for name, params in self.genotypes.items():
-                                I = reaction_norm(params["I0"], params["b"], env.variation)
-                                custom_plot(axs[row], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                           
-                        else:
-                            custom_plot(axs[column], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
-                            for name, params in self.genotypes.items():
-                                I = reaction_norm(params["I0"], params["b"], env.variation)
-                                custom_plot(axs[column], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                      
+                    custom_plot(axs[row,column], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
+                    for name, params in self.genotypes.items():
+                        I = reaction_norm(params["I0"], params["b"], env.variation)
+                        custom_plot(axs[row,column], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")
+        
+        
+       # check if only the parameter of interest has different values          
+        elif len(row_vectors)>1: 
+             for row, vector in enumerate(row_vectors):
+                env = vector[0]
+                custom_plot(axs[row], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
+                for name, params in self.genotypes.items():
+                    I = reaction_norm(params["I0"], params["b"], env.variation)
+                    custom_plot(axs[row], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                           
+            
+        else:
+            for column, env in enumerate(row_vectors[0]): 
+                custom_plot(axs[column], env.t, env.variation,  label='Environmental Variation', linestyle="dashdot", color="purple")
+                for name, params in self.genotypes.items():
+                    I = reaction_norm(params["I0"], params["b"], env.variation)
+                    custom_plot(axs[column], env.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}", legend_title=f" Environment Parameters: A={env.A}, B={env.B}, L={env.L}, R={env.R}")                                                      
 
-            save('./report/Stacked Phenotypics Responses')
+        save('./report/Stacked Phenotypics Responses')
         return fig
     
     def yield_population_dynamics(self):
