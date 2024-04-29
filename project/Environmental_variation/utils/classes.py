@@ -332,7 +332,7 @@ class Simulator():
                 custom_plot(axs[column],env.t, env.variation, label=f'A={env.A}\nB={env.B}\nL={env.L}\nR={env.R}\ntrimmed={env.trimmed}', ylim=(0,1))
                 axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
 
-        save('./report/Stacked Environments')
+        save('./report/Stacked Environments', close=False)
         return fig, axs
 
     def yield_reaction_norms(self):
@@ -494,7 +494,7 @@ class Simulator():
                         axs[0].set_ylabel(f"A ={env.A}", rotation="horizontal", fontsize=14, weight="bold")
                         axs[column].set_xlabel(f"R ={env.R}", rotation="horizontal", fontsize=14, weight="bold")
         
-        save('./report/Stacked Population Dynamics')
+        save('./report/Stacked Population Dynamics', close=False)
         return fig, axs
     
     def yield_environment_plots_with_antibiotic_frames(self):
@@ -503,25 +503,27 @@ class Simulator():
         # when tried to activate fig with plt.figure(fig) saving it causes a traceback error with save() (somethings broken with plt.close())
         
         # Unpacking the dictionary into variables
-        time_frame= (antibiotic_framework["time frame"])
+        time_frame = (antibiotic_framework["time frame"])
 
         fig, axs = self.yield_environment_plots()
+
+        # check for only 1 environment
+        if len(self.environments) == 1:
+            antibiotic_exposure_layers_applier(time_frame,axs)
         
-        if axs.ndim > 1:
+        # check for two dimensions
+        elif axs.ndim > 1:
             for vector in axs:
                 for ax in vector:
                     antibiotic_exposure_layers_applier(time_frame,ax)
+
+        # one dimension only            
         else:
             for ax in axs:
                 antibiotic_exposure_layers_applier(time_frame,ax)
 
-        fig.savefig("./report/Stack environments with Antibiotics Layers")
+        save('./report/Stacked Environments with antibiotic layers', close=False)
         return fig
-        # fig.savefig('./report/stacked environments with Antibiotc layers')
-        # pl.figure(figure)
-        # # plt.close()
-        # save('./report/Stacked Environments with Antibiotic Layers')
-        # print("after")
         
     def yield_population_dynamics_with_antibiotic_frames(self):
         # this function works right but has problem with the custom save function & that is why i dont use it.
