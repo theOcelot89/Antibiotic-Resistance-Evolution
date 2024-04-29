@@ -11,3 +11,6 @@
 
 12/4
 -> add applying layers for frames to alla dimensions expansion in environment multiplot and all other multiplots production. DONE
+
+28/4 
+-> Continue refactoring in simulator population dynamics & environment plots with antibiotic layers and env variation layers.
