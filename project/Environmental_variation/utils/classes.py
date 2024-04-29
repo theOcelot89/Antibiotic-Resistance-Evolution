@@ -457,7 +457,7 @@ class Simulator():
 
         # check for only 1 environment
         if len(self.environments) == 1:
-            fig, ax = self.environments[0].population_dynamics(self.genotypes, self.antibiotic_framework)
+            fig, axs = self.environments[0].population_dynamics(self.genotypes, self.antibiotic_framework)
             plt.figure(fig) # activate the current figure in order to save correctly       
 
         # check if grid has two dimensions (+unique values for the another parameter )
@@ -533,7 +533,13 @@ class Simulator():
         time_frame= (antibiotic_framework["time frame"])
         fig, axs = self.yield_population_dynamics()
 
-        if axs.ndim > 1:
+        # check for only 1 environment
+        if len(self.environments) == 1:
+            print("indeed")
+            antibiotic_exposure_layers_applier(time_frame,axs)
+            
+
+        elif axs.ndim > 1:
             for vector in axs:
                 for ax in vector:
                     antibiotic_exposure_layers_applier(time_frame,ax)
@@ -541,7 +547,7 @@ class Simulator():
             for ax in axs:
                 antibiotic_exposure_layers_applier(time_frame,ax)
 
-        fig.savefig("./report/Stack Population Dynamics with Antibiotics Layers")
+        save("./report/Stacked Population Dynamics with Antibiotics Layers")
         return fig, axs
 
     def yield_population_dynamics_with_antibiotic_frames_env_variation(self):
