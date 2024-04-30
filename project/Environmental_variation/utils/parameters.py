@@ -28,11 +28,11 @@ genotypes_params = {
 
 antibiotic_framework = {
     "zMIC" : 4,
-    "Antibiotic Concentration" : 100,
+    "Antibiotic Concentration" : 30,
     "psi_max" : 0.3,
     "psi_min" : -2,
     "k" : 0.8,
-    "time frame" : np.linspace(0, 100, 101),
+    "time frame" : np.linspace(0, 50, 101),
     "Initial Populations": [1e7]
 }
 
