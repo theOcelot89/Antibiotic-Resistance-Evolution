@@ -1,8 +1,9 @@
 # ╔══════════════════════════════════════════════════╗
 # ║                   Classes                        ║
 # ╚══════════════════════════════════════════════════╝
+from matplotlib.lines import Line2D
+
 from .equations import *
-# from .parameters import *
 from .tools import *
 from scipy.integrate import odeint
 
@@ -190,6 +191,7 @@ class Environment():
         self.population_dynamics_antibiotic_frames_env_variation(genotypes, antibiotic_framework)
 
     def realized_variation(self, genotypes, antibiotic_framework):
+        
         # Unpacking the dictionary into variables
         zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
         antibiotic_framework["zMIC"],
@@ -210,7 +212,7 @@ class Environment():
 
         # plot true variation
         true_variation, = axTrue.plot(np.arange(int(max(time_frame))+1), self.variation[:int(max(time_frame))+1], 
-                                        label="True Variation", color="purple", linestyle="dashdot")
+                          label="True Variation", color="purple", linestyle="dashdot")
 
 
         for initial_population in initial_populations:
@@ -219,9 +221,12 @@ class Environment():
                 X = odeint(dENV_dt, [initial_population,self.variation[0]], time_frame,
                            args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
                 # plot pop dynamics
-                ax.plot(time_frame, X[:,0], label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
+                ax.plot(time_frame, X[:,0], 
+                        label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]}',
+                        alpha= 0.3
+                        )
                 # plot realized variation
-                axReal.plot(time_frame, X[:,1], label=name, linestyle="dashdot")
+                axReal.plot(time_frame, X[:,1], label=name + " Realized Variation", linestyle="dashdot")
 
         axTrue.spines.right.set_position(("axes", 1.06)) # drug the y label outside the plot           
         axTrue.yaxis.label.set_color(true_variation.get_color()) # color the y label
@@ -236,6 +241,11 @@ class Environment():
         axTrue.set_ylim(0,1)
         ax.legend()
 
+        line = Line2D([0],[0], label="True Variation", color="purple", linestyle="dashdot")
+        handles, labels = axReal.get_legend_handles_labels() # extracting the previous legend stuff
+        handles.extend([line])
+        axReal.legend(handles=handles)
+
         # this is functionality for getting the legend out of the plot 
         # i dont use it because if i change the plot width now and 
         # try to plot env.variation later the plots will have different size
@@ -247,9 +257,80 @@ class Environment():
 
         # only save when called directly
         if not is_called_from_another_function():
-            save(f'./report/Population Dynamics', close=False)
+            save(f'./report/Realized Variation', close=False)
 
         return fig, ax
+
+    def actual_response(self, genotypes, antibiotic_framework):
+        # Unpacking the dictionary into variables
+        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
+        antibiotic_framework["zMIC"],
+        antibiotic_framework["Antibiotic Concentration"],
+        antibiotic_framework["psi_max"],
+        antibiotic_framework["psi_min"],
+        antibiotic_framework["k"],
+        antibiotic_framework["time frame"],
+        antibiotic_framework["Initial Populations"]
+        )
+
+        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot
+        fig.suptitle('Dynamics + \"Theoritical\" responses + \"Actual \" responses')
+
+
+        # axTheroticalResponse = ax.twinx() # y axis for Theoritical Response
+        axActualResponse = ax.twinx() # y axis for Actual Response
+
+        # plot true variation
+        true_variation, = axActualResponse.plot(np.arange(int(max(time_frame))+1), self.variation[:int(max(time_frame))+1,], 
+                                        label="True Variation", color="purple", linestyle="dashdot")
+
+
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
+                I = reaction_norm(params["I0"], params["b"], self.variation[:int(max(time_frame))+1,])
+                axActualResponse.plot(np.arange(int(max(time_frame))+1), I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")   
+
+                TheoriticalResponse0 =  reaction_norm(params["I0"],params["b"],self.variation[0])
+                X = odeint(dRESPONSE_dt, [initial_population, TheoriticalResponse0], time_frame,
+                           args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
+                # plot pop dynamics
+                ax.plot(time_frame, X[:,0],
+                        label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]}',
+                        alpha=0.3
+                        )
+                # plot realized variation
+                axActualResponse.plot(time_frame, X[:,1], label=name + " Actual Response", linestyle="dashdot")
+
+        axActualResponse.spines.right.set_position(("axes", 1.06)) # drug the y label outside the plot           
+        # axTrue.yaxis.label.set_color(true_variation.get_color()) # color the y label
+        # axTrue.tick_params(axis='y', colors=true_variation.get_color()) # color the tick & params
+        # axTrue.set(ylabel=" \"True\" Variation")
+        # axReal.set(ylabel=" \"Realized\" Variation")
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e9)   
+        axActualResponse.set_ylim(0,1)
+        # axTheroticalResponse.set_ylim(0,1)
+        ax.legend()
+        axActualResponse.legend()
+
+        # this is functionality for getting the legend out of the plot 
+        # i dont use it because if i change the plot width now and 
+        # try to plot env.variation later the plots will have different size
+        # one option is to conditionally do it only if the function is called directly!
+
+        pos = ax.get_position() #returns bbox in order to manipulate width/height
+        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
+
+        # only save when called directly
+        if not is_called_from_another_function():
+            save(f'./report/Actual Responses', close=False)
+
+        return fig, ax
+
+
 class Simulator():
     '''
     Simulator class is designed to process environments & genotypes.

@@ -17,7 +17,7 @@ environment.save()
 environment.population_dynamics_antibiotic_frames_env_variation(genotypes_params, antibiotic_framework)
 # environment.run_simulation(genotypes_params, antibiotic_framework)
 environment.realized_variation(genotypes_params, antibiotic_framework)
-
+environment.actual_response(genotypes_params,antibiotic_framework)
 #endregion
 
 #region main simulations

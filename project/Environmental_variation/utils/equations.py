@@ -27,6 +27,26 @@ def psi(a, psi_max, psi_min, zMIC, k):
     return (psi_max - psi_min) * (term / (term - psi_min/psi_max))
     return psi_max - ((psi_max - psi_min) * term) / (term + 1) # Giorgio's Implementation
 
+def is_time_for_administration(time):
+    # not statement reverses the antibiotic exposure time frames (simply put in front of expression)
+    return time % 10 < 5
+
+def population_is_below_threshold(X, threshold):
+    return X < threshold
+
+def growth_rate_modifier(psi_max, params, env):
+    return psi_max * reaction_norm(params["I0"], params["b"], env)
+
+def death_rate_modifier(growth):
+    return  - growth * 1.5
+
+def realized_variation_calculator(env,X):
+    return env * (1 - X/1e8)
+
+# def is_time_for_delution(time):
+#     return time % 10 < 3
+
+
 def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
     '''function in which growth rate is calculated depending on the environmental conditions'''
 
@@ -47,8 +67,6 @@ def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentr
     actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
 
     return max(actual_growth_rate, -X / 0.04)
-
-
 
 def dENV_dt(variables, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
     '''function in which growth rate is calculated depending on the environmental conditions'''
@@ -76,20 +94,30 @@ def dENV_dt(variables, t, psi_max, psi_min, zMIC, k, params, environment,antibod
 
     return [max(actual_growth_rate, -X / 0.04), realized_variation ]
 
-def is_time_for_administration(time):
-    # not statement reverses the antibiotic exposure time frames (simply put in front of expression)
-    return time % 10 < 5
+def dRESPONSE_dt(variables, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
+    '''function in which growth rate is calculated depending on the environmental conditions'''
+    X = variables[0]
+    actual_response = variables[1]
 
-def population_is_below_threshold(X, threshold):
-    return X < threshold
+    if population_is_below_threshold(X,10):
+        X = 0
 
-def growth_rate_modifier(psi_max, params, env):
-    return psi_max * reaction_norm(params["I0"], params["b"], env)
+    if is_time_for_administration(t): 
+        a_t = antibody_concentration 
+    else:
+        a_t = 0
+    
+    current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
+    modified_variation = realized_variation_calculator(current_env, X)
+    # modified_variation = current_env 
 
-def death_rate_modifier(growth):
-    return  - growth * 1.5
+    # realized_variation = modified_variation  - realized_variation
 
-def realized_variation_calculator(env,X):
-    return env * (1 - X/1e8)
-# def is_time_for_delution(time):
-#     return time % 10 < 3
+    modified_growth_rate = growth_rate_modifier(psi_max, params, modified_variation)
+    actual_response = reaction_norm(params["I0"], params["b"], modified_variation) - actual_response
+
+    modified_death_rate = death_rate_modifier(modified_growth_rate)
+    growth_rate_after_antibiotic = modified_growth_rate -  psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k)
+    actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
+
+    return [max(actual_growth_rate, -X / 0.04), actual_response ]
