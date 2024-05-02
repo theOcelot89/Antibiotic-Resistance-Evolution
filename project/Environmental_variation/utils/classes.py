@@ -237,8 +237,8 @@ class Environment():
         ax.set_ylabel('Bacterial Density')
         ax.set_yscale('log')
         ax.set_ylim(1, 1e9)   
-        axReal.set_ylim(0,1)
-        axTrue.set_ylim(0,1)
+        axReal.set_ylim(-1,1)
+        axTrue.set_ylim(-1,1)
         ax.legend()
 
         line = Line2D([0],[0], label="True Variation", color="purple", linestyle="dashdot")
