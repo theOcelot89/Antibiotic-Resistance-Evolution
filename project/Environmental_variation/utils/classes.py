@@ -48,7 +48,7 @@ class Environment():
         ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
         ax.legend(bbox_to_anchor=(1.32, 1)) # place legend out of plot 
         ax.set_title(f' Environmental variation A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed} ')
-
+        ax.grid()
         return fig, ax
 
     def trim(self):
@@ -73,7 +73,7 @@ class Environment():
         
     def save(self):
         plt.figure(self.fig)
-        save(f'./report/Env. variation t={len(self.t)}, A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed}.png', close=False)
+        save(f'./report/Env. variation', close=False)
 
     def gene_responses(self, genotypes):
 
@@ -155,6 +155,67 @@ class Environment():
             save(f'./report/Population Dynamics', close=False)
 
         return fig, ax
+
+    def new_population_dynamics(self, genotypes, antibiotic_framework):
+
+        # Unpacking the dictionary into variables
+        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
+        antibiotic_framework["zMIC"],
+        antibiotic_framework["Antibiotic Concentration"],
+        antibiotic_framework["psi_max"],
+        antibiotic_framework["psi_min"],
+        antibiotic_framework["k"],
+        antibiotic_framework["time frame"],
+        antibiotic_framework["Initial Populations"]
+        )
+
+        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot     
+
+        # plot dynamics
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
+
+                X = odeint(dENV_dt, [initial_population,0], time_frame,
+                           args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
+                ax.plot(time_frame, X[:,0], label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e9)   
+
+        antibiotic_exposure_layers_applier(time_frame,ax)
+
+        # this is functionality for getting the legend out of the plot 
+        # i dont use it because if i change the plot width now and 
+        # try to plot env.variation later the plots will have different size
+        # one option is to conditionally do it only if the function is called directly!
+
+        # pos = ax.get_position() #returns bbox in order to manipulate width/height
+        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        # ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
+
+        # only save when called directly
+        if not is_called_from_another_function():
+            save(f'./report/New Population Dynamics', close=False)
+
+
+        env = [dENV_dt(y, time, psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)[1] for time, y in zip(time_frame, X)]
+        environmental_variation_layer_applier(time_frame, ax, env)
+        save(f'./report/Dynamics With True Variation')
+
+        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot   
+
+
+
+        ax.plot(time_frame, env, linestyle="dashdot", color="purple", label="True Environmental variation")
+        ax.legend()
+        ax.grid()
+        save(f'./report/True Environemtal variation')
+
+
+        return fig, ax
+
 
     def population_dynamics_antibiotic_frames(self, genotypes, antibiotic_framework):
         
