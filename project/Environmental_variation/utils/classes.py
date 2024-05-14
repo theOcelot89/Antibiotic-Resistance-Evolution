@@ -42,23 +42,6 @@ class Environment():
 
         self.env_params = self.A, self.B, self.L, self.R
         self.results = self._simulation()
-       
-
-        # fig , ax = plt.subplots(figsize=(14,6))
-        # for name, result in results.items():
-        #     ax.plot(framework['time frame'], result[:,0], label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
-
-
-        # ax.set_xlabel('Time')
-        # ax.set_ylabel('Bacterial Density')
-        # ax.set_yscale('log')
-        # ax.set_ylim(1, 1e10)                   
-        # ax.legend()
-        # save("./report/Dynamics")
-        # plt.show() 
-        # print(results)
-
-        print(f"New environment created!, params: A={self.A}, B={self.B}, L={self.L}, R={self.R}, t={len(self.t)} ")
 
     def _simulation(self):
 
@@ -68,8 +51,7 @@ class Environment():
 
         initial_populations = framework["Initial Populations"]
         time_frame = framework["time frame"]
-
-
+        
         results = {}
         for initial_population in initial_populations:
             for name, params in genotypes.items():
