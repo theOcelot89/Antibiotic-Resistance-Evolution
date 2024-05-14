@@ -8,6 +8,9 @@ from utils.parameters import *
 A, B, L, R, t = 0.9, 0, 10, 8, 100
 # region environment simulations
 environment = Environment(A , B , L , R , t , genotypes_params, antibiotic_framework)
+environment.variation()
+environment.responses()
+environment.dynamics()
 # environment.trim()
 # environment.save()
 # environment.gene_reaction_norms(genotypes_params)

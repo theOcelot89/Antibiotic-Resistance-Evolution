@@ -31,6 +31,8 @@ class Environment():
         self.R = R
         self.epsilon = np.random.normal(0, 1, t)
         self.trimmed = False # flag for trimming to put in the plot's title
+        self.genotypes = genotypes
+        self.framework = framework
 
         # yield variation
         # self.variation = environmental_variation(env_params, t)
@@ -38,28 +40,31 @@ class Environment():
         # construct plot and immediately unpack
         # self.fig, self.ax = self._create_plot()   
 
-        env_params = self.A, self.B, self.L, self.R
-
-        results = self.simulation(env_params, genotypes, framework)
+        self.env_params = self.A, self.B, self.L, self.R
+        self.results = self._simulation()
        
 
-        fig , ax = plt.subplots(figsize=(14,6))
-        for name, result in results.items():
-            ax.plot(framework['time frame'], result[:,0], label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+        # fig , ax = plt.subplots(figsize=(14,6))
+        # for name, result in results.items():
+        #     ax.plot(framework['time frame'], result[:,0], label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
 
 
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Bacterial Density')
-        ax.set_yscale('log')
-        ax.set_ylim(1, 1e10)                   
-        ax.legend()
-        save("./report/Dynamics")
-        plt.show() 
+        # ax.set_xlabel('Time')
+        # ax.set_ylabel('Bacterial Density')
+        # ax.set_yscale('log')
+        # ax.set_ylim(1, 1e10)                   
+        # ax.legend()
+        # save("./report/Dynamics")
+        # plt.show() 
         # print(results)
 
         print(f"New environment created!, params: A={self.A}, B={self.B}, L={self.L}, R={self.R}, t={len(self.t)} ")
 
-    def simulation(self, env_params, genotypes, framework):
+    def _simulation(self):
+
+        env_params = self.env_params
+        genotypes = self.genotypes
+        framework = self.framework
 
         initial_populations = framework["Initial Populations"]
         time_frame = framework["time frame"]
@@ -68,10 +73,72 @@ class Environment():
         results = {}
         for initial_population in initial_populations:
             for name, params in genotypes.items():
-                X = odeint(sim, [initial_population,0,0], time_frame,
-                           args=(env_params, params, framework)) 
+                X = odeint(sim, [initial_population,0,0], time_frame,args=(env_params, params, framework)) 
                 results[name] = X
         return results
+
+    def variation(self):
+
+        time_frame = self.framework["time frame"]
+
+        index = list(self.results)[0] # grab the name of the first key in result in order to index in the next step
+        X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
+        params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
+        env_params = self.env_params
+        framework = self.framework
+
+        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
+        # i use this code in order to draw the true variation information that i want in order to plot correctly
+        variation = [sim(y, time, env_params, params, framework)[1] for time, y in zip(time_frame, X)]
+
+        fig , ax = plt.subplots(figsize=(14,6))
+        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.legend()
+        ax.grid()
+
+        self.variation = variation
+        save('./results/Environmental Variation')
+
+    def responses(self):
+
+        time_frame = self.framework["time frame"]
+
+        results = self.results
+        genotypes = self.genotypes
+        framework = self.framework
+        env_params = self.env_params
+        fig , ax = plt.subplots(figsize=(14,6))
+
+        for name, X in results.items():
+            # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
+            # i use this code in order to draw the true variation information that i want in order to plot correctly
+            response = [sim(y, time, env_params, genotypes[name], framework)[2] for time, y in zip(time_frame, X)]
+            ax.plot(time_frame, response, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+        ax.plot(time_frame, self.variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.set_title('Phenotypic Responses')
+        ax.set_xlabel('Time (t)')
+        ax.set_ylabel('Phenotypic response (I)')          
+        ax.legend()
+        save("./results/Responses")
+
+    def dynamics(self):
+
+        results = self.results
+        genotypes = self.genotypes
+        framework = self.framework
+
+        fig , ax = plt.subplots(figsize=(14,6))
+
+        for name, result in results.items():
+            ax.plot(framework['time frame'], result[:,0], label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e10)                   
+        ax.legend()
+        save("./results/Dynamics")
 
     def _create_plot(self):
             
