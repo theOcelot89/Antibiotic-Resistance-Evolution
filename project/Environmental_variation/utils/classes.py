@@ -199,7 +199,6 @@ class Environment():
         if not is_called_from_another_function():
             save(f'./report/New Population Dynamics', close=False)
 
-
         env = [dENV_dt(y, time, psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)[1] for time, y in zip(time_frame, X)]
         environmental_variation_layer_applier(time_frame, ax, env)
         save(f'./report/Dynamics With True Variation')
