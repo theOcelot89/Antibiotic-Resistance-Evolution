@@ -15,7 +15,7 @@ timesteps = [101]
 genotypes_params = {
     "Genotype 1": {"I0": 0.1, "b": 0.9},
     "Genotype 3": {"I0": 0.5, "b": 0.4},
-    "Genotype 4": {"I0": 0.8, "b": 0},    
+    "Genotype 4": {"I0": 0.9, "b": 0},    
 }
 
 
@@ -29,8 +29,8 @@ genotypes_params = {
 antibiotic_framework = {
     "zMIC" : 4,
     "Antibiotic Concentration" : 30,
-    "psi_max" : 0.3,
-    "psi_min" : -2,
+    "psi max" : 0.3,
+    "psi min" : -2,
     "k" : 0.8,
     "time frame" : np.linspace(0, 200, 401),
     "Initial Populations": [1e7]

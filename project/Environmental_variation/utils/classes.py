@@ -16,13 +16,14 @@ else:
     
 class Environment():
 
-    def __init__(self, A = 0.9, B = 0, L = 10, R = 1, t = 110):
+    def __init__(self, A , B , L , R , t, genotypes, framework):
         '''
         Environmental variation that individuals face, relative to their lifespam
         t = time, A = determinism magnitude, B = stochasticity magnitude
         L = lifespan, R = generations/environmental cycle, epsilon = stochastic error term
         https://doi.org/10.1073/pnas.1408589111
         '''
+        
         self.A = A 
         self.B = B
         self.t = np.arange(t)
@@ -32,13 +33,45 @@ class Environment():
         self.trimmed = False # flag for trimming to put in the plot's title
 
         # yield variation
-        self.variation = environmental_variation(self.A, self.B, self.t, self.L, self.R, self.epsilon)
+        # self.variation = environmental_variation(env_params, t)
         # self.variation = self.A * np.sin(2 * np.pi * self.t / (self.L * self.R)) + self.B * self.epsilon
         # construct plot and immediately unpack
-        self.fig, self.ax = self._create_plot()    
-        
-        
+        # self.fig, self.ax = self._create_plot()   
+
+        env_params = self.A, self.B, self.L, self.R
+
+        results = self.simulation(env_params, genotypes, framework)
+       
+
+        fig , ax = plt.subplots(figsize=(14,6))
+        for name, result in results.items():
+            ax.plot(framework['time frame'], result[:,0], label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e10)                   
+        ax.legend()
+        save("./report/Dynamics")
+        plt.show() 
+        # print(results)
+
         print(f"New environment created!, params: A={self.A}, B={self.B}, L={self.L}, R={self.R}, t={len(self.t)} ")
+
+    def simulation(self, env_params, genotypes, framework):
+
+        initial_populations = framework["Initial Populations"]
+        time_frame = framework["time frame"]
+
+
+        results = {}
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
+                X = odeint(sim, [initial_population,0,0], time_frame,
+                           args=(env_params, params, framework)) 
+                results[name] = X
+        return results
 
     def _create_plot(self):
             
@@ -50,7 +83,7 @@ class Environment():
         ax.set_title(f' Environmental variation A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed} ')
         ax.grid()
         return fig, ax
-
+        
     def trim(self):
         '''limiting environmental variation between 0 & 1'''
         # because trim will work directly on self.variation its action is irreversible & will follow the instance for the rest of the script when plots are constructed 
@@ -175,14 +208,14 @@ class Environment():
         for initial_population in initial_populations:
             for name, params in genotypes.items():
 
-                X = odeint(dENV_dt, [initial_population,0], time_frame,
+                X = odeint(dENV_dt, [initial_population,0,0], time_frame,
                            args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
                 ax.plot(time_frame, X[:,0], label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Bacterial Density')
         ax.set_yscale('log')
-        ax.set_ylim(1, 1e9)   
+        ax.set_ylim(1, 1e10)   
 
         antibiotic_exposure_layers_applier(time_frame,ax)
 
