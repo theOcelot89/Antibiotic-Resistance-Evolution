@@ -20,6 +20,7 @@ def reaction_norm(params, C):
 
     I0 = params["I0"]
     b = params["b"]
+
     return I0 + b * C
 
 def psi(a, psi_max, psi_min, zMIC, k):
@@ -35,7 +36,7 @@ def psi(a, psi_max, psi_min, zMIC, k):
     return psi_max - ((psi_max - psi_min) * term) / (term + 1) # Giorgio's Implementation
 
 def is_time_for_administration(time):
-    # not statement reverses the antibiotic exposure time frames (simply put in front of expression)
+    # not statement reverses the antibiotic exposure time frames (simply put "not" in front of expression)
     return not time % 10 < 5
 
 def population_is_below_threshold(X, threshold):
