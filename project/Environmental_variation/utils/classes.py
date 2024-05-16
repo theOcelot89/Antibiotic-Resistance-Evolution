@@ -52,10 +52,12 @@ class Environment():
         initial_populations = framework["Initial Populations"]
         time_frame = framework["time frame"]
         
+        
         results = {}
         for initial_population in initial_populations:
+            y0 = [initial_population,0,0,0]
             for name, params in genotypes.items():
-                X = odeint(sim, [initial_population,0,0], time_frame,args=(env_params, params, framework)) 
+                X = odeint(sim, y0, time_frame,args=(env_params, params, framework)) 
                 results[name] = X
         return results
 

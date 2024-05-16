@@ -5,7 +5,7 @@ from utils.parameters import *
 # ╔══════════════════════════════════════════════════╗
 # ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝
-A, B, L, R, t = 1.0, 0, 10, 8, 100
+A, B, L, R, t = 0.9, 0, 10, 8, 100
 
 # region environment simulations
 environment = Environment(A , B , L , R , t , genotypes_params, antibiotic_framework)
