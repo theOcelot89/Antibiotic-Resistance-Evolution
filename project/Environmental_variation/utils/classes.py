@@ -113,14 +113,40 @@ class Environment():
         fig , ax = plt.subplots(figsize=(14,6))
 
         for name, result in results.items():
-            ax.plot(framework['time frame'], result[:,0], label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+            dynamics = result[:,0]
+            ax.plot(framework['time frame'], dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Bacterial Density')
         ax.set_yscale('log')
         ax.set_ylim(1, 1e10)                   
         ax.legend()
-        save("./results/Dynamics")
+        save("./results/Dynamics", close=False)
+        return fig, ax
+
+    def dynamics_with_antibiotic_frames(self):
+
+        time_frame = self.framework["time frame"]        
+        fig, ax = self.dynamics()
+
+        # add antibiotic exposure information
+        antibiotic_exposure_layers_applier(time_frame,ax)
+
+        save('./results/Dynamics & Antibiotic Frames', close=False)
+        return fig, ax
+
+    def dynamics_with_antibiotic_frames_and_variation(self):
+        
+        time_frame = self.framework["time frame"]        
+        variation = self.variation
+        fig, ax = self.dynamics_with_antibiotic_frames()
+
+        # add environmental variation information
+        environmental_variation_layer_applier(time_frame, ax, variation)
+
+        save('./results/Dynamics & Antibiotic Frames & Varation', close=False)
+        return fig, ax
 
     def _create_plot(self):
             
