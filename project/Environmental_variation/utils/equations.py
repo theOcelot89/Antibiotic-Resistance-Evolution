@@ -132,4 +132,9 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
     growth_rate_after_antibiotic = actual_psi_max - antibiotic_effect
     actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
 
-    return [max(actual_growth_rate, -X / 0.04), true_env_variation, theoritical_response, actual_psi_max]
+    return [max(actual_growth_rate, -X / 0.04), 
+            true_env_variation, 
+            theoritical_response,
+            actual_psi_max, 
+            modified_death_rate
+            ]

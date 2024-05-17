@@ -55,7 +55,7 @@ class Environment():
         
         results = {}
         for initial_population in initial_populations:
-            y0 = [initial_population,0,0,0]
+            y0 = [initial_population,0,0,0,0]
             for name, params in genotypes.items():
                 X = odeint(sim, y0, time_frame,args=(env_params, params, framework)) 
                 results[name] = X
@@ -119,10 +119,13 @@ class Environment():
         for name, X in results.items():
             # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
             # i use this code in order to draw the true variation information that i want in order to plot correctly
-            psi_max = [sim(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
-            ax.plot(time_frame, psi_max, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
 
-        ax.plot(time_frame, self.variation, linestyle= "dashdot", color="purple", label="True Variation")
+            # draw psi max/min data from the results and plot
+            psi_max = [sim(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
+            psi_min = [sim(y, time, env_params, genotypes[name], framework)[4] for time, y in zip(time_frame, X)]
+            ax.plot(time_frame, psi_max, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+            ax.plot(time_frame, psi_min, label=f" psi min{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", linestyle="dashdot")
+
         ax.set_title('Actual Ψmax = Ψmax * Response')
         ax.set_xlabel('Time (t)')
         ax.set_ylabel('Ψmax')          
