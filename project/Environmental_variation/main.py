@@ -5,7 +5,7 @@ from utils.parameters import *
 # ╔══════════════════════════════════════════════════╗
 # ║                  Simulations                     ║
 # ╚══════════════════════════════════════════════════╝
-A, B, L, R, t = 0.9, 0, 10, 8, 100
+A, B, L, R, t = 1.0, 0, 10, 8, 100
 
 # region environment simulations
 environment = Environment(A , B , L , R , t , genotypes_params, antibiotic_framework)
@@ -16,8 +16,7 @@ environment.dynamics()
 environment.dynamics_with_antibiotic_frames()
 environment.dynamics_with_antibiotic_frames_and_variation()
 environment.actual_psi_max()
-# environment.realized_variation(genotypes_params, antibiotic_framework)
-# environment.actual_response(genotypes_params,antibiotic_framework)
+environment.growth_rate_after_antibiotic()
 #endregion
 
 #region main simulations

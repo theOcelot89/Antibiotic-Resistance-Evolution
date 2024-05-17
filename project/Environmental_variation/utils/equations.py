@@ -125,16 +125,18 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
     true_env_variation = environmental_variation(env_params, time) # env variation at time t
     theoritical_response = reaction_norm(gene_params, true_env_variation) # response based on variation
 
-    actual_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
-    modified_death_rate = death_rate_modifier(actual_psi_max) # effect of new psiMax to psiMin
-    antibiotic_effect = psi(a_t, actual_psi_max, modified_death_rate, zMIC, k) # effect of antibiotic based on new psiMax/Min
+    modified_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
+    modified_death_rate = death_rate_modifier(modified_psi_max) # effect of new psiMax to psiMin
+    antibiotic_effect = psi(a_t, modified_psi_max, modified_death_rate, zMIC, k) # effect of antibiotic based on new psiMax/Min
 
-    growth_rate_after_antibiotic = actual_psi_max - antibiotic_effect
+    growth_rate_after_antibiotic = modified_psi_max - antibiotic_effect
     actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
 
     return [max(actual_growth_rate, -X / 0.04), 
             true_env_variation, 
             theoritical_response,
-            actual_psi_max, 
-            modified_death_rate
+            modified_psi_max, 
+            modified_death_rate,
+            growth_rate_after_antibiotic,
+            actual_growth_rate
             ]
