@@ -114,19 +114,21 @@ class Environment():
         genotypes = self.genotypes
         framework = self.framework
         env_params = self.env_params
+        color_list = generate_color_list(len(genotypes)) 
+
         fig , ax = plt.subplots(figsize=(14,6))
 
-        for name, X in results.items():
+        for index,(name, X) in enumerate(results.items()):
             # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
             # i use this code in order to draw the true variation information that i want in order to plot correctly
 
             # draw psi max/min data from the results and plot
             psi_max = [sim(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
             psi_min = [sim(y, time, env_params, genotypes[name], framework)[4] for time, y in zip(time_frame, X)]
-            ax.plot(time_frame, psi_max, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
-            ax.plot(time_frame, psi_min, label=f" psi min{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", linestyle="dashdot")
+            ax.plot(time_frame, psi_max, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index])
+            ax.plot(time_frame, psi_min, label=f" psi min  {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index], linestyle="dashdot")
 
-        ax.set_title('Actual Ψmax = Ψmax * Response')
+        ax.set_title(f'Actual Ψmax = {get_function_body(growth_rate_modifier)}, Ψmin = {get_function_body(death_rate_modifier)}')
         ax.set_xlabel('Time (t)')
         ax.set_ylabel('Ψmax')          
         ax.legend()

@@ -170,9 +170,22 @@ def bold_text(text):
   return "\033[1m" + text + "\033[0m"
 
 def is_called_from_another_function():
+
     stack = inspect.stack()
     if len(stack) > 2:
         calling_function = stack[2].function
         if calling_function != "<module>":  # Exclude calls from module level
             return True
     return False
+
+def generate_color_list(num_colors, colormap_name='Set1'):
+    # Get the colormap
+    colormap = plt.get_cmap(colormap_name)
+    
+    # Generate a list of equally spaced values from 0 to 1
+    color_indices = np.linspace(0, 1, num_colors)
+    
+    # Generate the list of colors
+    color_list = [colormap(index) for index in color_indices]
+    
+    return color_list

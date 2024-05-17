@@ -45,8 +45,8 @@ def population_is_below_threshold(X, threshold):
 def growth_rate_modifier(psi_max, response):
     return psi_max * response
 
-def death_rate_modifier(growth):
-    return  - growth * 1.5
+def death_rate_modifier(psi_max):
+    return  - psi_max  * 1.5
 
 def realized_variation_calculator(env,X):
     return env
