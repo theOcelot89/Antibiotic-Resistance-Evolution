@@ -17,6 +17,7 @@ environment.dynamics_with_antibiotic_frames()
 environment.dynamics_with_antibiotic_frames_and_variation()
 environment.actual_psi_max()
 environment.growth_rate_after_antibiotic()
+environment.actual_psi_max__antibiotic_effect__growth_rate()
 #endregion
 
 #region main simulations

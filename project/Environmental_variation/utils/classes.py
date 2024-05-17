@@ -55,7 +55,7 @@ class Environment():
         
         results = {}
         for initial_population in initial_populations:
-            y0 = [initial_population,0,0,0,0,0,0]
+            y0 = [initial_population,0,0,0,0,0,0,0]
             for name, params in genotypes.items():
                 X = odeint(sim, y0, time_frame,args=(env_params, params, framework)) 
                 results[name] = X
@@ -134,6 +134,35 @@ class Environment():
         ax.legend()
         save("./results/Actual psi Max")
     
+    def actual_psi_max__antibiotic_effect__growth_rate(self):
+
+        time_frame = self.framework["time frame"]
+
+        results = self.results
+        genotypes = self.genotypes
+        framework = self.framework
+        env_params = self.env_params
+
+        for name, X in results.items():
+
+            fig , ax = plt.subplots(figsize=(14,6))
+
+            # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
+            # i use this code in order to draw the true variation information that i want in order to plot correctly
+            modified_psi_max = [sim(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
+            antibiotic_effect = [sim(y, time, env_params, genotypes[name], framework)[5] for time, y in zip(time_frame, X)]
+            growth = [sim(y, time, env_params, genotypes[name], framework)[6] for time, y in zip(time_frame, X)]
+            ax.plot(time_frame, modified_psi_max, label=f"Modified Ψmax", linestyle="dashdot")
+            ax.plot(time_frame, antibiotic_effect, label=f"Antibiotic effect", linestyle="dashdot")
+            ax.plot(time_frame, growth, label=f"Growth Rate (Ψmax -  Antibiotic effect)")           
+            ax.set_title(f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+            ax.set_xlabel('Time (t)')
+            ax.set_ylabel('Rate')          
+            ax.legend()
+
+            antibiotic_exposure_layers_applier(time_frame, ax)
+            save(f"./results/{name}, I0 {genotypes[name]["I0"]}, b {genotypes[name]["b"]}")
+
     def growth_rate_after_antibiotic(self):
 
         time_frame = self.framework["time frame"]
@@ -147,7 +176,7 @@ class Environment():
         for name, X in results.items():
             # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
             # i use this code in order to draw the true variation information that i want in order to plot correctly
-            response = [sim(y, time, env_params, genotypes[name], framework)[5] for time, y in zip(time_frame, X)]
+            response = [sim(y, time, env_params, genotypes[name], framework)[6] for time, y in zip(time_frame, X)]
             ax.plot(time_frame, response, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
 
         ax.set_title('Growth Rate after antibiotic effect')
