@@ -138,5 +138,5 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
             modified_psi_max, 
             modified_death_rate,
             growth_rate_after_antibiotic,
-            actual_growth_rate
+            antibiotic_effect,
             ]
