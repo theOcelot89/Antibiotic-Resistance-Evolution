@@ -38,45 +38,6 @@ class Environment():
         self.results = self._simulation()
 
 
-    def _variation(self):
-        
-        env_params = self.env_params
-        time_frame = self.framework["time frame"]
-        initial_variation = 0
-        print(initial_variation, env_params)
-
-        variation = odeint(sim_variation, initial_variation, time_frame, args=(env_params,))
-
-        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
-        # i use this code in order to draw the true variation information that i want in order to plot correctly
-        variation = [sim_variation(y, time, env_params) for time, y in zip(time_frame, variation)]
-
-        fig , ax = plt.subplots(figsize=(14,6))
-        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
-        ax.legend()
-        ax.grid()
-
-        self.variation = variation
-        save('./results/Environmental Variation')   
-        var_max = max(variation)
-        var_min = min(variation)
-        print(var_max,var_min)
-
-        normalized_variation = []
-        for var in variation:
-            normalized_var = (var - var_min) / (var_max - var_min)
-            normalized_variation.append(normalized_var)
-
-        fig , ax = plt.subplots(figsize=(14,6))
-        ax.plot(time_frame, normalized_variation, linestyle= "dashdot", color="purple", label="True Variation")
-        ax.legend()
-        ax.grid()
-
-        self.variation = variation
-        save('./results/Normalized Environmental Variation') 
-
-
-
     def _simulation(self):
 
         env_params = self.env_params

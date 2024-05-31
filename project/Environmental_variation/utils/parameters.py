@@ -28,7 +28,7 @@ genotypes_params = {
 
 antibiotic_framework = {
     "zMIC" : 4,
-    "Antibiotic Concentration" : 10,
+    "Antibiotic Concentration" : 100000,
     "psi max" : 0.3,
     "psi min" : -2,
     "k" : 0.8,

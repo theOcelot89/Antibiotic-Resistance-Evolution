@@ -104,14 +104,6 @@ def dENV_dt(variables, t, psi_max, psi_min, zMIC, k, params, environment,antibod
 
     return [max(actual_growth_rate, -X / 0.04), true_env_variation, theoritical_response]
 
-def sim_variation(variation, time, env_params):
-
-
-    variation = environmental_variation(env_params, time) # env variation at time t
-
-    return variation
-
-
 def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_params):
 
     X = initial_conditions[0]
