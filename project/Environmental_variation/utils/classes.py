@@ -32,16 +32,32 @@ class Environment():
         self.epsilon = np.random.normal(0, 1, t)
         self.trimmed = False # flag for trimming to put in the plot's title
         self.genotypes = genotypes
-        self.framework = framework
-
-        # yield variation
-        # self.variation = environmental_variation(env_params, t)
-        # self.variation = self.A * np.sin(2 * np.pi * self.t / (self.L * self.R)) + self.B * self.epsilon
-        # construct plot and immediately unpack
-        # self.fig, self.ax = self._create_plot()   
+        self.framework = framework 
 
         self.env_params = self.A, self.B, self.L, self.R
         self.results = self._simulation()
+
+
+    def _variation(self):
+        
+        env_params = self.env_params
+        time_frame = self.framework["time frame"]
+        initial_variation = 0
+        print(initial_variation, env_params)
+
+        variation = odeint(sim_variation, initial_variation, time_frame, args=(env_params,))
+
+        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
+        # i use this code in order to draw the true variation information that i want in order to plot correctly
+        variation = [sim_variation(y, time, env_params) for time, y in zip(time_frame, variation)]
+
+        fig , ax = plt.subplots(figsize=(14,6))
+        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.legend()
+        ax.grid()
+
+        self.variation = variation
+        save('./results/Environmental Variation')        
 
     def _simulation(self):
 
