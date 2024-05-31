@@ -57,7 +57,25 @@ class Environment():
         ax.grid()
 
         self.variation = variation
-        save('./results/Environmental Variation')        
+        save('./results/Environmental Variation')   
+        var_max = max(variation)
+        var_min = min(variation)
+        print(var_max,var_min)
+
+        normalized_variation = []
+        for var in variation:
+            normalized_var = (var - var_min) / (var_max - var_min)
+            normalized_variation.append(normalized_var)
+
+        fig , ax = plt.subplots(figsize=(14,6))
+        ax.plot(time_frame, normalized_variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.legend()
+        ax.grid()
+
+        self.variation = variation
+        save('./results/Normalized Environmental Variation') 
+
+
 
     def _simulation(self):
 
