@@ -89,7 +89,7 @@ class Environment():
         
         results = {}
         for initial_population in initial_populations:
-            y0 = [initial_population,0,0,0,0,0,0]
+            y0 = [initial_population,0,0,0,0,0,0,0]
             for name, params in genotypes.items():
                 X = odeint(sim, y0, time_frame,args=(env_params, params, framework)) 
                 results[name] = X
@@ -116,6 +116,28 @@ class Environment():
 
         self.variation = variation
         save('./results/Environmental Variation')
+
+    def normalized_variation(self):
+
+        time_frame = self.framework["time frame"]
+
+        index = list(self.results)[0] # grab the name of the first key in result in order to index in the next step
+        X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
+        params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
+        env_params = self.env_params
+        framework = self.framework
+
+        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
+        # i use this code in order to draw the true variation information that i want in order to plot correctly
+        variation = [sim(y, time, env_params, params, framework)[7] for time, y in zip(time_frame, X)]
+
+        fig , ax = plt.subplots(figsize=(14,6))
+        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.legend()
+        ax.grid()
+
+        self.variation = variation
+        save('./results/Normalized Env Variation')
 
     def responses(self):
 

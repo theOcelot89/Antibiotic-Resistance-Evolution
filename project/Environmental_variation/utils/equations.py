@@ -121,6 +121,10 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
     antibody_concentration = antibiotic_framework_params["Antibiotic Concentration"]
     zMIC = antibiotic_framework_params["zMIC"]
     k = antibiotic_framework_params["k"]
+    A, B, L, R = env_params
+    variation_max = A
+    variation_min = - variation_max
+
 
     if population_is_below_threshold(X,10):
         X = 0
@@ -130,8 +134,15 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
     else:
         a_t = 0
 
+    
+
     true_env_variation = environmental_variation(env_params, time) # env variation at time t
-    theoritical_response = reaction_norm(gene_params, true_env_variation) # response based on variation
+
+    normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min) 
+
+    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation
+
+    
 
     modified_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
     modified_death_rate = death_rate_modifier(modified_psi_max) # effect of new psiMax to psiMin
@@ -147,4 +158,5 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
             modified_death_rate,
             growth_rate_after_antibiotic,
             antibiotic_effect,
+            normalized_variation
             ]

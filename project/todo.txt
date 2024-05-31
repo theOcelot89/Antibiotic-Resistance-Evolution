@@ -1,16 +1,3 @@
-
--> For some reason when plt.show() is called within an env.view() it renders all the plots on the script when they are initialized 
-
--> IMPORTANT pass genotypes in DX/dt in order to run correct DONE
--> Integrate the dx/dt workflow inside the environment class DONE
--> Save figs to dynamically created folders DONE
-
-11/4
--> create condition for antibiotic administration to pass dynamically to dx/dt and to apply antibiotic exposure layers DONE
--> create function for creating the plots dynamically inside simulation class DONE
-
-12/4
--> add applying layers for frames to alla dimensions expansion in environment multiplot and all other multiplots production. DONE
-
-28/4 
--> Continue refactoring in simulator population dynamics & environment plots with antibiotic layers and env variation layers.
+-> create and normalize variation outside of simulation
+-> Import mutation
+-> Import competition
