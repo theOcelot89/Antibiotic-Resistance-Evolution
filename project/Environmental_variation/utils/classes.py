@@ -45,8 +45,7 @@ class Environment():
         framework = self.framework
 
         initial_populations = framework["Initial Populations"]
-        time_frame = framework["time frame"]
-        
+        time_frame = framework["time frame"]        
         
         results = {}
         for initial_population in initial_populations:
