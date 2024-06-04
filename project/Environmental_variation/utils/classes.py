@@ -37,7 +37,6 @@ class Environment():
         self.env_params = self.A, self.B, self.L, self.R
         self.results = self._simulation()
 
-
     def _simulation(self):
 
         env_params = self.env_params
@@ -52,6 +51,25 @@ class Environment():
             y0 = [initial_population,0,0,0,0,0,0,0]
             for name, params in genotypes.items():
                 X = odeint(sim, y0, time_frame,args=(env_params, params, framework)) 
+                results[name] = X
+        return results
+
+    def _simulation_mutation(self):
+
+        env_params = self.env_params
+        genotypes = self.genotypes
+        framework = self.framework
+
+        initial_populations = framework["Initial Populations"]
+        mutation_population = 0 # placeholder for mutants to induce into the simulation
+        time_frame = framework["time frame"] 
+
+        
+        results = {}
+        for initial_population in initial_populations:
+            y0 = [initial_population, mutation_population, 0, 0, 0, 0, 0, 0, 0]
+            for name, params in genotypes.items():
+                X = odeint(sim_mutation, y0, time_frame, args=(env_params, params, framework)) 
                 results[name] = X
         return results
 

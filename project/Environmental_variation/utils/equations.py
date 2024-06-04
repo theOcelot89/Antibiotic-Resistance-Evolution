@@ -55,58 +55,6 @@ def realized_variation_calculator(env,X):
     return env
     return env * (1-X/1e9)
 
-def dX_dt(X, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
-    '''function in which growth rate is calculated depending on the environmental conditions'''
-
-    if population_is_below_threshold(X,10):
-        X = 0
-
-    if is_time_for_administration(t): 
-        a_t = antibody_concentration 
-    else:
-        a_t = 0
-    
-    current_env = environment.variation[int(t) % len(environment.t)] # Environmental variation (as an environmental Cue) at time t
-    modified_current_env = realized_variation_calculator(current_env,X)
-
-    modified_growth_rate = growth_rate_modifier(psi_max, params, modified_current_env)
-    modified_death_rate = death_rate_modifier(modified_growth_rate)
-    growth_rate_after_antibiotic = modified_growth_rate -  psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k)
-    actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
-
-    return max(actual_growth_rate, -X / 0.04)
-
-def dENV_dt(variables, t, psi_max, psi_min, zMIC, k, params, environment,antibody_concentration):
-    '''function in which growth rate is calculated depending on the environmental conditions'''
-
-    X = variables[0]
-    
-    A = environment.A
-    B = environment.B
-    L = environment.L
-    R = environment.R
-
-
-    if population_is_below_threshold(X,10):
-        X = 0
-
-    if is_time_for_administration(t): 
-        a_t = antibody_concentration 
-    else:
-        a_t = 0
-    
-    epsilon = np.random.normal(0, 1)
-    true_env_variation = environmental_variation(A, B, t, L, R, epsilon)
-
-    theoritical_response = reaction_norm(params["I0"], params["b"], true_env_variation)
-
-    modified_growth_rate = growth_rate_modifier(psi_max, params, true_env_variation)
-    modified_death_rate = death_rate_modifier(modified_growth_rate)
-    growth_rate_after_antibiotic = modified_growth_rate -  psi(a_t, modified_growth_rate, modified_death_rate, zMIC, k)
-    actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
-
-    return [max(actual_growth_rate, -X / 0.04), true_env_variation, theoritical_response]
-
 def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_params):
 
     X = initial_conditions[0]
@@ -158,8 +106,8 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
 
 def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_framework_params):
 
-    wild_pop = initial_conditions[0][0]
-    mutant_pop = initial_conditions[0][1]
+    wild_pop = initial_conditions[0]
+    mutant_pop = initial_conditions[1]
 
     psi_max = antibiotic_framework_params["psi max"]
     psi_min = antibiotic_framework_params["psi min"]
@@ -169,7 +117,7 @@ def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_f
     A, B, L, R = env_params
     variation_max = A
     variation_min = - variation_max
-
+    mutated_zMIC = zMIC * 2
 
     if is_time_for_mutation(time):
         mutant_pop = 10
@@ -179,7 +127,6 @@ def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_f
 
     if population_is_below_threshold(mutant_pop,10):
         mutant_pop = 0
-        mutated_zMIC = zMIC * 2
 
     if is_time_for_administration(time): 
         a_t = antibody_concentration 
@@ -206,7 +153,8 @@ def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_f
     mutant_actual_growth_rate = np.log(10) * mutant_growth_rate_after_antibiotic * mutant_pop * (1 - (mutant_pop/1e9))
 
 
-    return [[max(wild_actual_growth_rate, -wild_pop / 0.04), max(mutant_actual_growth_rate, -mutant_pop / 0.04)],
+    return [max(wild_actual_growth_rate, -wild_pop / 0.04),
+            max(mutant_actual_growth_rate, -mutant_pop / 0.04),
             true_env_variation, 
             theoritical_response,
             modified_psi_max, 
