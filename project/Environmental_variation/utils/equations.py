@@ -39,8 +39,8 @@ def is_time_for_administration(time):
     # not statement reverses the antibiotic exposure time frames (simply put "not" in front of expression)
     return not time % 10 < 5
 
-def is_time_for_mutation(time):
-    return time > 20
+def is_time_for_mutation(time, timepoint):
+    return timepoint == time 
 
 def population_is_below_threshold(X, threshold):
     return X < threshold
@@ -109,6 +109,7 @@ def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_f
     wild_pop = initial_conditions[0]
     mutant_pop = initial_conditions[1]
 
+
     psi_max = antibiotic_framework_params["psi max"]
     psi_min = antibiotic_framework_params["psi min"]
     antibody_concentration = antibiotic_framework_params["Antibiotic Concentration"]
@@ -117,16 +118,22 @@ def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_f
     A, B, L, R = env_params
     variation_max = A
     variation_min = - variation_max
-    mutated_zMIC = zMIC * 2
+    mutated_zMIC = zMIC * 10
 
-    if is_time_for_mutation(time):
-        mutant_pop = 10
-
+    
     if population_is_below_threshold(wild_pop,10):
         wild_pop = 0
 
-    if population_is_below_threshold(mutant_pop,10):
-        mutant_pop = 0
+    # if population_is_below_threshold(mutant_pop,10):
+    #     mutant_pop = 0
+
+
+
+    if is_time_for_mutation(int(time),20):
+        # print("mutation happened")
+        # print(mutation_happened)
+        mutant_pop = 10
+
 
     if is_time_for_administration(time): 
         a_t = antibody_concentration 

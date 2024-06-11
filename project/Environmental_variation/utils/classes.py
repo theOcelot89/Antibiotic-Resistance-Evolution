@@ -62,16 +62,37 @@ class Environment():
 
         initial_populations = framework["Initial Populations"]
         mutation_population = 0 # placeholder for mutants to induce into the simulation
-        time_frame = framework["time frame"] 
+        time_frame = framework["time frame"]         
 
-        
         results = {}
         for initial_population in initial_populations:
-            y0 = [initial_population, mutation_population, 0, 0, 0, 0, 0, 0, 0]
             for name, params in genotypes.items():
+                
+                y0 = [initial_population, mutation_population, 0, 0, 0, 0, 0, 0, 0]
                 X = odeint(sim_mutation, y0, time_frame, args=(env_params, params, framework)) 
                 results[name] = X
-        return results
+
+
+        # PLOT THE RESULTS
+        fig , ax = plt.subplots(figsize=(14,6))
+
+        for name, result in results.items():
+
+            wild_type_dynamics = result[:,0]
+            mutant_type_dynamics = result[:,1]
+            
+            ax.plot(framework['time frame'], wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+            ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e10)                   
+        ax.legend()
+        save("./results/Dynamics with mutation", close=False)
+        return fig, ax
+
 
     def variation(self):
 
@@ -243,6 +264,31 @@ class Environment():
         save("./results/Dynamics", close=False)
         return fig, ax
 
+    def dynamics_with_mutation(self):
+
+            results = self.results
+            genotypes = self.genotypes
+            framework = self.framework
+
+            fig , ax = plt.subplots(figsize=(14,6))
+
+            for name, result in results.items():
+
+                wild_type_dynamics = result[:,0]
+                mutant_type_dynamics = result[:,1]
+                
+                ax.plot(framework['time frame'], wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+                ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+
+            ax.set_xlabel('Time')
+            ax.set_ylabel('Bacterial Density')
+            ax.set_yscale('log')
+            ax.set_ylim(1, 1e10)                   
+            ax.legend()
+            save("./results/Dynamics with mutation", close=False)
+            return fig, ax
+    
     def dynamics_with_antibiotic_frames(self):
 
         time_frame = self.framework["time frame"]        
