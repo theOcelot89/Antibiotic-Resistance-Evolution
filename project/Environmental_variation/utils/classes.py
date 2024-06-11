@@ -5,7 +5,8 @@ from matplotlib.lines import Line2D
 
 from .equations import *
 from .tools import *
-from scipy.integrate import odeint
+from scipy.integrate import odeint, solve_ivp   
+
 
 if __name__ == "__main__":
     print('classes called directly nothing to show..')
@@ -91,6 +92,47 @@ class Environment():
         ax.set_ylim(1, 1e10)                   
         ax.legend()
         save("./results/Dynamics with mutation", close=False)
+        return fig, ax
+
+    def _simulation_mutationVERSION2(self):
+
+        env_params = self.env_params
+        genotypes = self.genotypes
+        framework = self.framework
+
+        initial_populations = framework["Initial Populations"]
+        mutation_population = 0 # placeholder for mutants to induce into the simulation
+        time_frame = framework["time frame"]      
+        t_span = np.array([0,200])   
+
+        results = {}
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
+                
+                y0 = [initial_population, mutation_population, 0, 0, 0, 0, 0, 0, 0]
+                X = solve_ivp(sim_mutation_VERSION2, t_span, y0,  args=(env_params, params, framework)) 
+                results[name] = X
+
+
+        # PLOT THE RESULTS
+        fig , ax = plt.subplots(figsize=(14,6))
+
+        for name, result in results.items():
+
+            time = result.t
+            wild_type_dynamics = result.y[0]
+            mutant_type_dynamics = result.y[1]
+            
+            ax.plot(time, wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+            ax.plot(time, mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e10)                   
+        ax.legend()
+        save("./results/Dynamics with mutation VERSION 2", close=False)
         return fig, ax
 
 

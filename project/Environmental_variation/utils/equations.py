@@ -170,3 +170,70 @@ def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_f
             wild_antibiotic_effect,
             normalized_variation
             ]
+
+def sim_mutation_VERSION2(time, initial_conditions, env_params, gene_params, antibiotic_framework_params):
+
+    wild_pop = initial_conditions[0]
+    mutant_pop = initial_conditions[1]
+
+
+    psi_max = antibiotic_framework_params["psi max"]
+    psi_min = antibiotic_framework_params["psi min"]
+    antibody_concentration = antibiotic_framework_params["Antibiotic Concentration"]
+    zMIC = antibiotic_framework_params["zMIC"]
+    k = antibiotic_framework_params["k"]
+    A, B, L, R = env_params
+    variation_max = A
+    variation_min = - variation_max
+    mutated_zMIC = zMIC * 10
+
+    
+    if population_is_below_threshold(wild_pop,10):
+        wild_pop = 0
+
+    # if population_is_below_threshold(mutant_pop,10):
+    #     mutant_pop = 0
+
+
+
+    if is_time_for_mutation(int(time),20):
+        # print("mutation happened")
+        # print(mutation_happened)
+        mutant_pop = 10
+
+
+    if is_time_for_administration(time): 
+        a_t = antibody_concentration 
+    else:
+        a_t = 0    
+
+    true_env_variation = environmental_variation(env_params, time) # env variation at time t
+    normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min) 
+    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation    
+
+    modified_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
+    modified_death_rate = death_rate_modifier(modified_psi_max) # effect of new psiMax to psiMin
+
+    # ANTIBIOTIC EFFECT ON WILD & MUTANT POPULATIONS
+    wild_antibiotic_effect = psi(a_t, modified_psi_max, modified_death_rate, zMIC, k) # effect of antibiotic based on new psiMax/Min
+    mutant_antibiotic_effect = psi(a_t, modified_psi_max, modified_death_rate, mutated_zMIC, k) # effect of antibiotic based on new psiMax/Min
+
+    # GROWTH RATES FOR WILD & MUTANT POPULATIONS
+    wild_growth_rate_after_antibiotic = modified_psi_max - wild_antibiotic_effect
+    mutant_growth_rate_after_antibiotic = modified_psi_max - mutant_antibiotic_effect
+    
+    # ACTUAL GROWTH FOR WILD & MUTANT POPULATIONS
+    wild_actual_growth_rate = np.log(10) * wild_growth_rate_after_antibiotic * wild_pop * (1 - (wild_pop/1e9))
+    mutant_actual_growth_rate = np.log(10) * mutant_growth_rate_after_antibiotic * mutant_pop * (1 - (mutant_pop/1e9))
+
+
+    return [max(wild_actual_growth_rate, -wild_pop / 0.04),
+            max(mutant_actual_growth_rate, -mutant_pop / 0.04),
+            true_env_variation, 
+            theoritical_response,
+            modified_psi_max, 
+            modified_death_rate,
+            wild_growth_rate_after_antibiotic,
+            wild_antibiotic_effect,
+            normalized_variation
+            ]
