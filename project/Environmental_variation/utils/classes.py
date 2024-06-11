@@ -102,15 +102,17 @@ class Environment():
 
         initial_populations = framework["Initial Populations"]
         mutation_population = 0 # placeholder for mutants to induce into the simulation
-        time_frame = framework["time frame"]      
-        t_span = np.array([0,200])   
+        time_frame = framework["time frame"]   
+        start = (int(time_frame[0])) # index time frame for solve_ivp
+        end = (int(time_frame[-1]))  # index time frame for solve_ivp
+        t_span = np.array([start,end])   
 
         results = {}
         for initial_population in initial_populations:
             for name, params in genotypes.items():
                 
-                y0 = [initial_population, mutation_population, 0, 0, 0, 0, 0, 0, 0]
-                X = solve_ivp(sim_mutation_VERSION2, t_span, y0,  args=(env_params, params, framework)) 
+                y0 = np.array([initial_population, mutation_population, 0, 0, 0, 0, 0, 0, 0])
+                X = solve_ivp(sim_mutation_VERSION2, t_span, y0,  args=(env_params, params, framework), t_eval= time_frame, method='LSODA') 
                 results[name] = X
 
 

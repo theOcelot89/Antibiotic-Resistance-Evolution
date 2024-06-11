@@ -32,7 +32,7 @@ antibiotic_framework = {
     "psi max" : 0.3,
     "psi min" : -2,
     "k" : 0.8,
-    "time frame" : np.linspace(0, 200, 401),
+    "time frame" : np.linspace(0, 100, 401),
     "Initial Populations": [1e7]
 }
 
