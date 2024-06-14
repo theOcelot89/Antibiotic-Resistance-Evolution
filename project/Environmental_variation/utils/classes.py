@@ -479,7 +479,7 @@ class Environment():
 
         return fig
 
-    def population_dynamics(self, genotypes, antibiotic_framework):
+   
 
         # Unpacking the dictionary into variables
         zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
@@ -522,7 +522,7 @@ class Environment():
 
         return fig, ax
 
-    def new_population_dynamics(self, genotypes, antibiotic_framework):
+
 
         # Unpacking the dictionary into variables
         zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
