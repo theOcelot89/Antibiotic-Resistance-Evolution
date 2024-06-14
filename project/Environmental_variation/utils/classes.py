@@ -105,7 +105,7 @@ class Environment():
         time_frame = framework["time frame"]   
         start = (int(time_frame[0])) # index time frame for solve_ivp
         end = (int(time_frame[-1]))  # index time frame for solve_ivp
-        t_span = np.array([start,end])   
+        t_span = np.array([start,end]) # time span that is mandatory for solve_ivp  
 
         results = {}
         for initial_population in initial_populations:
@@ -137,6 +137,66 @@ class Environment():
         save("./results/Dynamics with mutation VERSION 2", close=False)
         return fig, ax
 
+    def _simulation_with_event(self):
+
+
+        env_params = self.env_params
+        genotypes = self.genotypes
+        framework = self.framework
+
+        initial_populations = framework["Initial Populations"]
+        mutation_population = 0 # placeholder for mutants to induce into the simulation
+        time_frame = framework["time frame"]   
+        start = (int(time_frame[0])) # index time frame for solve_ivp
+        end = (int(time_frame[-1]))  # index time frame for solve_ivp
+        t_span = np.array([start,end]) # time span that is mandatory for solve_ivp  
+
+                
+        def event(t,y,env_params, params, framework):
+            return int(t) - 150 # the return needs to be 0 for the event to trigger
+        # event.terminal = True
+
+        results = {}
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
+                
+                y0 = np.array([initial_population, 0, 0, 0, 0, 0, 0, 0])
+                X = solve_ivp(sim_ivp, t_span, y0,  
+                              args=(env_params, params, framework), 
+                              t_eval= time_frame, 
+                              method='LSODA',
+                              events=event,
+                              dense_output=True) 
+                results[name] = X
+
+                # print(X.t_events)
+                # print(X.sol(X.t_events[0][0]))
+                # print("x.y:", X.y)
+        
+
+        # PLOT THE RESULTS
+        fig , ax = plt.subplots(figsize=(14,6))
+
+        for name, result in results.items():
+
+            time = result.t
+            wild_type_dynamics = result.y[0]
+            # mutant_type_dynamics = result.y[1]
+            print('time events', result.t_events)
+            print('y events', result.y_events)
+            
+            ax.plot(time, wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+            ax.plot(result.t_events[0][0], result.y_events[0][0][0], 'o')
+            # ax.plot(time, mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e10)                   
+        ax.legend()
+        save("./results/Dynamics with event", close=False)
+        return fig, ax
 
     def variation(self):
 

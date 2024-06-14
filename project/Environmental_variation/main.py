@@ -19,8 +19,9 @@ environment = Environment(A , B , L , R , t , genotypes_params, antibiotic_frame
 # environment.growth_rate_after_antibiotic()
 # environment.actual_psi_max__antibiotic_effect__growth_rate()
 # environment.normalized_variation()
-environment._simulation_mutation()
-environment._simulation_mutationVERSION2()
+# environment._simulation_mutation()
+# environment._simulation_mutationVERSION2()
+environment._simulation_with_event()
 # environment.dynamics_with_mutation()
 #endregion
 

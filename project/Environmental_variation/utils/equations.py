@@ -237,3 +237,52 @@ def sim_mutation_VERSION2(time, initial_conditions, env_params, gene_params, ant
             wild_antibiotic_effect,
             normalized_variation
             ]
+
+def sim_ivp(time, initial_conditions, env_params, gene_params, antibiotic_framework_params):
+
+    X = initial_conditions[0]
+
+    psi_max = antibiotic_framework_params["psi max"]
+    psi_min = antibiotic_framework_params["psi min"]
+    antibody_concentration = antibiotic_framework_params["Antibiotic Concentration"]
+    zMIC = antibiotic_framework_params["zMIC"]
+    k = antibiotic_framework_params["k"]
+    A, B, L, R = env_params
+    variation_max = A
+    variation_min = - variation_max
+
+
+    if population_is_below_threshold(X,10):
+        X = 0
+
+    if is_time_for_administration(time): 
+        a_t = antibody_concentration 
+    else:
+        a_t = 0
+
+    
+
+    true_env_variation = environmental_variation(env_params, time) # env variation at time t
+
+    normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min) 
+
+    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation
+
+    
+
+    modified_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
+    modified_death_rate = death_rate_modifier(modified_psi_max) # effect of new psiMax to psiMin
+    antibiotic_effect = psi(a_t, modified_psi_max, modified_death_rate, zMIC, k) # effect of antibiotic based on new psiMax/Min
+
+    growth_rate_after_antibiotic = modified_psi_max - antibiotic_effect
+    actual_growth_rate = np.log(10) * growth_rate_after_antibiotic * X * (1 - (X/1e9))
+
+    return [max(actual_growth_rate, -X / 0.04), 
+            true_env_variation, 
+            theoritical_response,
+            modified_psi_max, 
+            modified_death_rate,
+            growth_rate_after_antibiotic,
+            antibiotic_effect,
+            normalized_variation
+            ]
