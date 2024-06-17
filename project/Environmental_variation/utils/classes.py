@@ -437,10 +437,6 @@ class Environment():
         # add antibiotic exposure information
         antibiotic_exposure_layers_applier(time_frame,ax)
 
-        # # PLACE LEGEND OUT OF PLOT
-        # pos = ax.get_position() #returns bbox in order to manipulate width/height
-        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot 
 
         save('./results/Dynamics & Antibiotic Frames', close=False)
 
