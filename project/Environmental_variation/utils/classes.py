@@ -36,7 +36,7 @@ class Environment():
         self.framework = framework 
 
         self.env_params = self.A, self.B, self.L, self.R
-        self.results = self._simulation()
+        self.results, self.fig, self.ax = self._simulation_odeint_with_mutation()
 
     def _simulation(self):
 
@@ -55,7 +55,7 @@ class Environment():
                 results[name] = X
         return results
 
-    def _simulation_mutation(self):
+    def _simulation_odeint_with_mutation(self):
 
         env_params = self.env_params
         genotypes = self.genotypes
@@ -70,7 +70,7 @@ class Environment():
             for name, params in genotypes.items():
                 
                 y0 = [initial_population, mutation_population, 0, 0, 0, 0, 0, 0, 0]
-                X = odeint(sim_mutation, y0, time_frame, args=(env_params, params, framework)) 
+                X = odeint(sim_with_mutation_event, y0, time_frame, args=(env_params, params, framework)) 
                 results[name] = X
 
 
@@ -92,9 +92,9 @@ class Environment():
         ax.set_ylim(1, 1e10)                   
         ax.legend()
         save("./results/Dynamics with mutation", close=False)
-        return fig, ax
+        return results, fig, ax
 
-    def _simulation_mutationVERSION2(self):
+    def _simulation_with_mutation_event(self):
 
         env_params = self.env_params
         genotypes = self.genotypes
@@ -396,7 +396,7 @@ class Environment():
     def dynamics_with_antibiotic_frames(self):
 
         time_frame = self.framework["time frame"]        
-        fig, ax = self.dynamics()
+        fig, ax = self.fig, self.ax
 
         # add antibiotic exposure information
         antibiotic_exposure_layers_applier(time_frame,ax)
@@ -408,12 +408,12 @@ class Environment():
         
         time_frame = self.framework["time frame"]        
         variation = self.variation
-        fig, ax = self.dynamics_with_antibiotic_frames()
+        fig, ax = self.fig, self.ax
 
         # add environmental variation information
         environmental_variation_layer_applier(time_frame, ax, variation)
 
-        save('./results/Dynamics & Antibiotic Frames & Varation', close=False)
+        save('./results/Dynamics & Antibiotic Frames & Variation', close=False)
         return fig, ax
 
     def _create_plot(self):

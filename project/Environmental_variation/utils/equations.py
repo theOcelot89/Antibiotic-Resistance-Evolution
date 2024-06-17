@@ -104,7 +104,7 @@ def sim(initial_conditions, time, env_params, gene_params, antibiotic_framework_
             normalized_variation
             ]
 
-def sim_mutation(initial_conditions, time, env_params, gene_params, antibiotic_framework_params):
+def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, antibiotic_framework_params):
 
     wild_pop = initial_conditions[0]
     mutant_pop = initial_conditions[1]
