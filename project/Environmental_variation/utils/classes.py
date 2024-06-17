@@ -89,7 +89,8 @@ class Environment():
         ax.set_xlabel('Time')
         ax.set_ylabel('Bacterial Density')
         ax.set_yscale('log')
-        ax.set_ylim(1, 1e10)                   
+        ax.set_ylim(1, 1e10)  
+        ax.set_title(f'zMIC={framework['zMIC']},c={framework['Antibiotic Concentration']},Ψmax={framework['psi max']},Ψmin={framework['psi min']},k={framework['k']}')                 
         ax.legend()
 
         # PLACE LEGEND OUT OF PLOT
@@ -251,7 +252,7 @@ class Environment():
         variation = [sim(y, time, env_params, params, framework)[7] for time, y in zip(time_frame, X)]
 
         fig , ax = plt.subplots(figsize=(14,6))
-        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="Normalized Variation Variation")
+        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="Normalized Variation")
         ax.set_title(f"A={A}, B={B}, L={L}, R={R},")
         ax.legend()
         ax.grid()
