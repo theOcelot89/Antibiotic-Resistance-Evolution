@@ -60,6 +60,8 @@ class Environment():
         env_params = self.env_params
         genotypes = self.genotypes
         framework = self.framework
+        color_list = generate_color_list(len(genotypes)) 
+
 
         initial_populations = framework["Initial Populations"]
         mutation_population = 0 # placeholder for mutants to induce into the simulation
@@ -77,13 +79,14 @@ class Environment():
         # PLOT THE RESULTS
         fig , ax = plt.subplots(figsize=(18,6))
 
-        for name, result in results.items():
+        for index,(name, result) in enumerate(results.items()):
+
 
             wild_type_dynamics = result[:,0]
             mutant_type_dynamics = result[:,1]
             
-            ax.plot(framework['time frame'], wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
-            ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
+            ax.plot(framework['time frame'], wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index])
+            ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index], linestyle="dashdot")
 
 
         ax.set_xlabel('Time')
@@ -307,8 +310,6 @@ class Environment():
         fig , ax = plt.subplots(figsize=(14,6))
 
         for index,(name, X) in enumerate(results.items()):
-            # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
-            # i use this code in order to draw the true variation information that i want in order to plot correctly
 
             # draw psi max/min data from the results and plot
             psi_max = [sim(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
