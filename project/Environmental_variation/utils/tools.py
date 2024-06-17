@@ -129,7 +129,7 @@ def environmental_variation_layer_applier(time_frame, ax, variation):
     variation_axe.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
     variation_axe.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
     
-    custom_plot(variation_axe, time_frame, variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(-1,1))
+    custom_plot(variation_axe, time_frame, variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(0,1))
     # variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
 
 def custom_plot(ax, xdim, ydim, **params):

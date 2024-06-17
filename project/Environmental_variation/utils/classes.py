@@ -213,7 +213,9 @@ class Environment():
         X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
         params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
         env_params = self.env_params
+        A, B, L, R =  env_params
         framework = self.framework
+        
 
         # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
         # i use this code in order to draw the true variation information that i want in order to plot correctly
@@ -221,6 +223,7 @@ class Environment():
 
         fig , ax = plt.subplots(figsize=(14,6))
         ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.set_title(f"A={A}, B={B}, L={L}, R={R},")
         ax.legend()
         ax.grid()
 
@@ -240,6 +243,7 @@ class Environment():
         X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
         params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
         env_params = self.env_params
+        A, B, L, R =  env_params
         framework = self.framework
 
         # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
@@ -247,9 +251,15 @@ class Environment():
         variation = [sim(y, time, env_params, params, framework)[7] for time, y in zip(time_frame, X)]
 
         fig , ax = plt.subplots(figsize=(14,6))
-        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="Normalized Variation Variation")
+        ax.set_title(f"A={A}, B={B}, L={L}, R={R},")
         ax.legend()
         ax.grid()
+
+        # PLACE LEGEND OUT OF PLOT
+        pos = ax.get_position() #returns bbox in order to manipulate width/height
+        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
 
         self.variation = variation
         save('./results/Normalized Env Variation')
