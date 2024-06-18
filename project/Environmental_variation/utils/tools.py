@@ -186,14 +186,11 @@ def is_called_from_another_function():
             return True
     return False
 
-def generate_color_list(num_colors, colormap_name='Set1'):
-    # Get the colormap
-    colormap = plt.get_cmap(colormap_name)
+def generate_color_list(num_colors):
+    # Get the default color cycle from Matplotlib
+    color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
     
-    # Generate a list of equally spaced values from 0 to 1
-    color_indices = np.linspace(0, 1, num_colors)
-    
-    # Generate the list of colors
-    color_list = [colormap(index) for index in color_indices]
+    # If num_colors is greater than the length of the color cycle, repeat the cycle
+    color_list = [color_cycle[i % len(color_cycle)] for i in range(num_colors)]
     
     return color_list

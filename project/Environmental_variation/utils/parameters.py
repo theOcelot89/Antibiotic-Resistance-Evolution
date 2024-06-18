@@ -25,9 +25,11 @@ genotypes_params = {
 # for all simulations and layer appliers to work properly
 # the slicing must be at least time+1 (e.g. np.linspace(0, 100, 101))
 
+zMIC = 4
 
 antibiotic_framework = {
-    "zMIC" : 4,
+    "zMIC" : zMIC,
+    "mutant zMIC" : zMIC * 10,
     "Antibiotic Concentration" : 100,
     "psi max" : 0.3,
     "psi min" : -2,

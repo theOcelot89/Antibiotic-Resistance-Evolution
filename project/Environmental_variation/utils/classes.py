@@ -93,7 +93,7 @@ class Environment():
         ax.set_ylabel('Bacterial Density')
         ax.set_yscale('log')
         ax.set_ylim(1, 1e10)  
-        ax.set_title(f'zMIC={framework['zMIC']},c={framework['Antibiotic Concentration']},Ψmax={framework['psi max']},Ψmin={framework['psi min']},k={framework['k']}')                 
+        ax.set_title(f'zMIC={framework['zMIC']}, mutantzMIC={framework["mutant zMIC"]}, c={framework['Antibiotic Concentration']},Ψmax={framework['psi max']},Ψmin={framework['psi min']},k={framework['k']}')                 
         ax.legend()
 
         # PLACE LEGEND OUT OF PLOT

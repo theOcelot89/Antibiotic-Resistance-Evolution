@@ -114,11 +114,11 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     psi_min = antibiotic_framework_params["psi min"]
     antibody_concentration = antibiotic_framework_params["Antibiotic Concentration"]
     zMIC = antibiotic_framework_params["zMIC"]
+    mutated_zMIC = antibiotic_framework_params['mutant zMIC']
     k = antibiotic_framework_params["k"]
     A, B, L, R = env_params
     variation_max = A
     variation_min = - variation_max
-    mutated_zMIC = zMIC * 10
 
     
     if population_is_below_threshold(wild_pop,10):
