@@ -13,9 +13,9 @@ timesteps = [101]
 
 
 genotypes_params = {
-    "Genotype 1": {"I0": 0.1, "b": 0.9},
-    "Genotype 2": {"I0": 0.5, "b": 0.5},
-    "Genotype 3": {"I0": 1.0, "b": 0},    
+    "Plastic ": {"I0": 0.1, "b": 0.9},
+    "Semi Plastic ": {"I0": 0.5, "b": 0.5},
+    "Non Plastic": {"I0": 1.0, "b": 0},    
 }
 
 
