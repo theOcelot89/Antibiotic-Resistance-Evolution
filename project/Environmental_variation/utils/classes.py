@@ -86,7 +86,7 @@ class Environment():
             mutant_type_dynamics = result[:,1]
             
             ax.plot(framework['time frame'], wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index])
-            ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index], linestyle="dashdot")
+            ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index], linestyle="dashed")
 
 
         ax.set_xlabel('Time')
