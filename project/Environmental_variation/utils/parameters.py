@@ -13,8 +13,8 @@ timesteps = [101]
 
 
 genotypes_params = {
-    "Plastic ": {"I0": 0.1, "b": 0.9},
-    "Semi Plastic ": {"I0": 0.5, "b": 0.5},
+    "Plastic": {"I0": 0.1, "b": 0.9},
+    "Semi Plastic": {"I0": 0.5, "b": 0.5},
     "Non Plastic": {"I0": 1.0, "b": 0},    
 }
 

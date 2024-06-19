@@ -7,6 +7,8 @@ import os
 from PIL import Image 
 import inspect
 import ast
+from matplotlib.lines import Line2D
+
 
 from .equations import is_time_for_administration
 # ╔══════════════════════════════════════════════════╗
@@ -116,9 +118,6 @@ def antibiotic_exposure_layers_applier(period, ax):
     handles.extend([exposure_patch,no_exposure_patch]) # adding the patch to the old stuff
     ax.legend(handles=handles, bbox_to_anchor=(1.34, 1))
 
-
-    
-
     return ax
 
 def environmental_variation_layer_applier(time_frame, ax, variation):
@@ -128,9 +127,18 @@ def environmental_variation_layer_applier(time_frame, ax, variation):
     # PLACE LEGEND OUT OF PLOT
     pos = variation_axe.get_position() #returns bbox in order to manipulate width/height
     variation_axe.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-    variation_axe.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
+    # variation_axe.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
     
-    custom_plot(variation_axe, time_frame, variation, linestyle="dashdot", color="black", alpha=0.3, ylim=(0,1))
+    # https://www.statology.org/matplotlib-manual-legend/
+    #create color patches for the legend to show
+    exposure_patch = mpatches.Patch(color='red',  alpha=.2, label='Antibiotic Exposure')
+    no_exposure_patch = mpatches.Patch(color='green', alpha=.2, label='No exposure')
+    variation_line = Line2D([0], [0], label='Variation', color='black', alpha=0.2, linestyle='dashdot')
+    handles, labels = ax.get_legend_handles_labels() # extracting the previous legend stuff
+    handles.extend([exposure_patch, no_exposure_patch,variation_line]) # adding the patch to the old stuff
+    ax.legend(handles=handles, bbox_to_anchor=(1.36, 1))
+    
+    custom_plot(variation_axe, time_frame, variation, linestyle="dashdot", color="black", alpha=0.2, ylim=(0,1))
     # variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
 
 def custom_plot(ax, xdim, ydim, **params):
