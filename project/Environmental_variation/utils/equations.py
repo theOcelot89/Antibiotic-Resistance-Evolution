@@ -109,7 +109,6 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     wild_pop = initial_conditions[0]
     mutant_pop = initial_conditions[1]
 
-
     psi_max = antibiotic_framework_params["psi max"]
     psi_min = antibiotic_framework_params["psi min"]
     antibody_concentration = antibiotic_framework_params["Antibiotic Concentration"]
@@ -119,15 +118,12 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     A, B, L, R = env_params
     variation_max = A
     variation_min = - variation_max
-
-    
+  
     if population_is_below_threshold(wild_pop,10):
         wild_pop = 0
 
     # if population_is_below_threshold(mutant_pop,10):
     #     mutant_pop = 0
-
-
 
     if is_time_for_mutation(int(time),20):
         # print("mutation happened")
@@ -141,9 +137,15 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
         a_t = 0    
 
     true_env_variation = environmental_variation(env_params, time) # env variation at time t
-    normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min) 
-    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation    
+    # print("env variation: ", true_env_variation)
+    
+    if A == 0:
+        normalized_variation = 0
+    else:
+        normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min)
 
+    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation    
+    # print(theoritical_response)
     modified_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
     modified_death_rate = death_rate_modifier(modified_psi_max) # effect of new psiMax to psiMin
 
@@ -158,7 +160,6 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     # ACTUAL GROWTH FOR WILD & MUTANT POPULATIONS
     wild_actual_growth_rate = np.log(10) * wild_growth_rate_after_antibiotic * wild_pop * (1 - (wild_pop/1e9))
     mutant_actual_growth_rate = np.log(10) * mutant_growth_rate_after_antibiotic * mutant_pop * (1 - (mutant_pop/1e9))
-
 
     return [max(wild_actual_growth_rate, -wild_pop / 0.04),
             max(mutant_actual_growth_rate, -mutant_pop / 0.04),

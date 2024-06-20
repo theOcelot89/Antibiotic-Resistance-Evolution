@@ -32,11 +32,199 @@ class Environment():
         self.R = R
         self.epsilon = np.random.normal(0, 1, t)
         self.trimmed = False # flag for trimming to put in the plot's title
+
         self.genotypes = genotypes
         self.framework = framework 
-
         self.env_params = self.A, self.B, self.L, self.R
         self.results, self.fig, self.ax = self._simulation_odeint_with_mutation()
+
+    def variation(self):
+
+        time_frame = self.framework["time frame"]
+
+        index = list(self.results)[0] # grab the name of the first key in result in order to index in the next step
+        X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
+        params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
+        env_params = self.env_params
+        A, B, L, R =  env_params
+        framework = self.framework        
+
+        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
+        # i use this code in order to draw the true variation information that i want in order to plot correctly
+        variation = [sim_with_mutation_event(y, time, env_params, params, framework)[2] for time, y in zip(time_frame, X)]
+
+        # PLOT THE RESULTS
+        fig , ax = plt.subplots(figsize=(14,6))
+        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
+        ax.set_title(f"A={A}, B={B}, L={L}, R={R},")
+        ax.legend()
+        ax.grid()
+
+        # PLACE LEGEND OUT OF PLOT
+        pos = ax.get_position() #returns bbox in order to manipulate width/height
+        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
+
+        self.variation = variation
+        save('./results/Environmental Variation')
+
+    def normalized_variation(self):
+
+        time_frame = self.framework["time frame"]
+
+        index = list(self.results)[0] # grab the name of the first key in result in order to index in the next step
+        X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
+        params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
+        env_params = self.env_params
+        A, B, L, R =  env_params
+        framework = self.framework
+
+        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
+        # i use this code in order to draw the true variation information that i want in order to plot correctly
+        variation = [sim_with_mutation_event(y, time, env_params, params, framework)[8] for time, y in zip(time_frame, X)]
+
+        fig , ax = plt.subplots(figsize=(14,6))
+        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="Normalized Variation")
+        ax.set_title(f"A={A}, B={B}, L={L}, R={R}")
+        ax.legend()
+        ax.grid()
+
+        # PLACE LEGEND OUT OF PLOT
+        pos = ax.get_position() #returns bbox in order to manipulate width/height
+        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
+
+        self.variation = variation
+        save('./results/Normalized Env Variation')
+
+    def gene_reaction_norms(self):
+
+        genotypes = self.genotypes
+        variation = self.variation
+        # print("variation:", variation)
+        variation = np.array(variation) # convert list to numpy array for the reaction norm function
+        # print("variation:", variation)
+
+        fig, ax = plt.subplots(figsize=(12,6)) # create plot from scratch
+
+        for name, params in genotypes.items():
+            I = reaction_norm(params, variation)
+            ax.plot(variation, I, label=f"{name}, I0={params["I0"]}, b={params["b"]}")
+
+        pos = ax.get_position() #returns bbox in order to manipulate width/height
+        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot 
+
+        ax.set_title('Reaction Norms')
+        ax.set_xlabel('Environmental Variation (E)')
+        ax.set_ylabel('Phenotypic response (I)')
+
+        # if not is_called_from_another_function():
+        save(f'./results/Norms', close = True)
+
+        return fig
+
+   
+
+        # Unpacking the dictionary into variables
+        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
+        antibiotic_framework["zMIC"],
+        antibiotic_framework["Antibiotic Concentration"],
+        antibiotic_framework["psi_max"],
+        antibiotic_framework["psi_min"],
+        antibiotic_framework["k"],
+        antibiotic_framework["time frame"],
+        antibiotic_framework["Initial Populations"]
+        )
+
+        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot     
+
+        # plot dynamics
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
+
+                X = odeint(dX_dt, initial_population, time_frame,
+                           args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
+                ax.plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e9)   
+
+        # this is functionality for getting the legend out of the plot 
+        # i dont use it because if i change the plot width now and 
+        # try to plot env.variation later the plots will have different size
+        # one option is to conditionally do it only if the function is called directly!
+
+        # pos = ax.get_position() #returns bbox in order to manipulate width/height
+        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        # ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
+
+        # only save when called directly
+        if not is_called_from_another_function():
+            save(f'./report/Population Dynamics', close=False)
+
+        return fig, ax
+
+
+
+        # Unpacking the dictionary into variables
+        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
+        antibiotic_framework["zMIC"],
+        antibiotic_framework["Antibiotic Concentration"],
+        antibiotic_framework["psi_max"],
+        antibiotic_framework["psi_min"],
+        antibiotic_framework["k"],
+        antibiotic_framework["time frame"],
+        antibiotic_framework["Initial Populations"]
+        )
+
+        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot     
+
+        # plot dynamics
+        for initial_population in initial_populations:
+            for name, params in genotypes.items():
+
+                X = odeint(dENV_dt, [initial_population,0,0], time_frame,
+                           args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
+                ax.plot(time_frame, X[:,0], label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
+
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Bacterial Density')
+        ax.set_yscale('log')
+        ax.set_ylim(1, 1e10)   
+
+        antibiotic_exposure_layers_applier(time_frame,ax)
+
+        # this is functionality for getting the legend out of the plot 
+        # i dont use it because if i change the plot width now and 
+        # try to plot env.variation later the plots will have different size
+        # one option is to conditionally do it only if the function is called directly!
+
+        # pos = ax.get_position() #returns bbox in order to manipulate width/height
+        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+        # ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
+
+        # only save when called directly
+        if not is_called_from_another_function():
+            save(f'./report/New Population Dynamics', close=False)
+
+        env = [dENV_dt(y, time, psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)[1] for time, y in zip(time_frame, X)]
+        environmental_variation_layer_applier(time_frame, ax, env)
+        save(f'./report/Dynamics With True Variation')
+
+        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot   
+
+
+
+        ax.plot(time_frame, env, linestyle="dashdot", color="purple", label="True Environmental variation")
+        ax.legend()
+        ax.grid()
+        save(f'./report/True Environemtal variation')
+
+
+        return fig, ax
 
     def _simulation(self):
 
@@ -61,8 +249,6 @@ class Environment():
         genotypes = self.genotypes
         framework = self.framework
         color_list = generate_color_list(len(genotypes)) 
-
-
         initial_populations = framework["Initial Populations"]
         mutation_population = 0 # placeholder for mutants to induce into the simulation
         time_frame = framework["time frame"]         
@@ -75,19 +261,15 @@ class Environment():
                 X = odeint(sim_with_mutation_event, y0, time_frame, args=(env_params, params, framework)) 
                 results[name] = X
 
-
         # PLOT THE RESULTS
         fig , ax = plt.subplots(figsize=(18,6))
 
         for index,(name, result) in enumerate(results.items()):
 
-
             wild_type_dynamics = result[:,0]
-            mutant_type_dynamics = result[:,1]
-            
+            mutant_type_dynamics = result[:,1]            
             ax.plot(framework['time frame'], wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}, zMIC:{framework["zMIC"]}", color=color_list[index])
             ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}, zMIC:{framework["mutant zMIC"]}", color=color_list[index], linestyle="dashed")
-
 
         ax.set_xlabel('Time')
         ax.set_ylabel('Bacterial Density')
@@ -209,65 +391,6 @@ class Environment():
         save("./results/Dynamics with event", close=False)
         return fig, ax
 
-    def variation(self):
-
-        time_frame = self.framework["time frame"]
-
-        index = list(self.results)[0] # grab the name of the first key in result in order to index in the next step
-        X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
-        params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
-        env_params = self.env_params
-        A, B, L, R =  env_params
-        framework = self.framework
-        
-
-        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
-        # i use this code in order to draw the true variation information that i want in order to plot correctly
-        variation = [sim(y, time, env_params, params, framework)[1] for time, y in zip(time_frame, X)]
-
-        fig , ax = plt.subplots(figsize=(14,6))
-        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="True Variation")
-        ax.set_title(f"A={A}, B={B}, L={L}, R={R},")
-        ax.legend()
-        ax.grid()
-
-        # # PLACE LEGEND OUT OF PLOT
-        pos = ax.get_position() #returns bbox in order to manipulate width/height
-        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
-
-        self.variation = variation
-        save('./results/Environmental Variation')
-
-    def normalized_variation(self):
-
-        time_frame = self.framework["time frame"]
-
-        index = list(self.results)[0] # grab the name of the first key in result in order to index in the next step
-        X = self.results[index] # use the index to take the first genotype results (here we dont care about which genotypes as "true variation" is independent from it.)
-        params = self.genotypes[index] # also use the index to grab the params of the genotype (also here true variation is not affected from this)
-        env_params = self.env_params
-        A, B, L, R =  env_params
-        framework = self.framework
-
-        # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
-        # i use this code in order to draw the true variation information that i want in order to plot correctly
-        variation = [sim(y, time, env_params, params, framework)[7] for time, y in zip(time_frame, X)]
-
-        fig , ax = plt.subplots(figsize=(14,6))
-        ax.plot(time_frame, variation, linestyle= "dashdot", color="purple", label="Normalized Variation")
-        ax.set_title(f"A={A}, B={B}, L={L}, R={R},")
-        ax.legend()
-        ax.grid()
-
-        # PLACE LEGEND OUT OF PLOT
-        pos = ax.get_position() #returns bbox in order to manipulate width/height
-        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
-
-        self.variation = variation
-        save('./results/Normalized Env Variation')
-
     def responses(self):
 
         time_frame = self.framework["time frame"]
@@ -281,7 +404,7 @@ class Environment():
         for name, X in results.items():
             # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
             # i use this code in order to draw the true variation information that i want in order to plot correctly
-            response = [sim(y, time, env_params, genotypes[name], framework)[2] for time, y in zip(time_frame, X)]
+            response = [sim_with_mutation_event(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
             ax.plot(time_frame, response, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
 
         ax.plot(time_frame, self.variation, linestyle= "dashdot", color="purple", label="True Variation")
@@ -338,9 +461,9 @@ class Environment():
 
             # https://stackoverflow.com/questions/54365358/odeint-function-from-scipy-integrate-gives-wrong-result
             # i use this code in order to draw the true variation information that i want in order to plot correctly
-            modified_psi_max = [sim(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
-            antibiotic_effect = [sim(y, time, env_params, genotypes[name], framework)[6] for time, y in zip(time_frame, X)]
-            growth = [sim(y, time, env_params, genotypes[name], framework)[5] for time, y in zip(time_frame, X)]
+            modified_psi_max = [sim_with_mutation_event(y, time, env_params, genotypes[name], framework)[4] for time, y in zip(time_frame, X)]
+            antibiotic_effect = [sim_with_mutation_event(y, time, env_params, genotypes[name], framework)[7] for time, y in zip(time_frame, X)]
+            growth = [sim_with_mutation_event(y, time, env_params, genotypes[name], framework)[6] for time, y in zip(time_frame, X)]
             ax.plot(time_frame, modified_psi_max, label=f"Modified Ψmax", linestyle="dashdot")
             ax.plot(time_frame, antibiotic_effect, label=f"Antibiotic effect", linestyle="dashdot")
             ax.plot(time_frame, growth, label=f"Growth Rate (Ψmax -  Antibiotic effect)")           
@@ -499,132 +622,6 @@ class Environment():
 
         return fig
 
-    def gene_reaction_norms(self):
-
-        genotypes = self.genotypes
-        variation = self.variation
-        variation = np.array(variation) # convert list to numpy array for the reaction norm function
-        fig, ax = plt.subplots(figsize=(12,6)) # create plot from scratch
-
-        for name, params in genotypes.items():
-            I = reaction_norm(params, variation)
-            ax.plot(variation, I, label=f"{name}, I0={params["I0"]}, b={params["b"]}")
-
-        pos = ax.get_position() #returns bbox in order to manipulate width/height
-        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        ax.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot 
-
-        ax.set_title('Reaction Norms')
-        ax.set_xlabel('Environmental Variation (E)')
-        ax.set_ylabel('Phenotypic response (I)')
-
-        # if not is_called_from_another_function():
-        save(f'./results/Norms', close = False)
-
-        return fig
-
-   
-
-        # Unpacking the dictionary into variables
-        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
-        antibiotic_framework["zMIC"],
-        antibiotic_framework["Antibiotic Concentration"],
-        antibiotic_framework["psi_max"],
-        antibiotic_framework["psi_min"],
-        antibiotic_framework["k"],
-        antibiotic_framework["time frame"],
-        antibiotic_framework["Initial Populations"]
-        )
-
-        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot     
-
-        # plot dynamics
-        for initial_population in initial_populations:
-            for name, params in genotypes.items():
-
-                X = odeint(dX_dt, initial_population, time_frame,
-                           args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
-                ax.plot(time_frame, X, label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
-
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Bacterial Density')
-        ax.set_yscale('log')
-        ax.set_ylim(1, 1e9)   
-
-        # this is functionality for getting the legend out of the plot 
-        # i dont use it because if i change the plot width now and 
-        # try to plot env.variation later the plots will have different size
-        # one option is to conditionally do it only if the function is called directly!
-
-        # pos = ax.get_position() #returns bbox in order to manipulate width/height
-        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        # ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
-
-        # only save when called directly
-        if not is_called_from_another_function():
-            save(f'./report/Population Dynamics', close=False)
-
-        return fig, ax
-
-
-
-        # Unpacking the dictionary into variables
-        zMIC, antibiotic_concentration, psi_max, psi_min, k, time_frame, initial_populations = (
-        antibiotic_framework["zMIC"],
-        antibiotic_framework["Antibiotic Concentration"],
-        antibiotic_framework["psi_max"],
-        antibiotic_framework["psi_min"],
-        antibiotic_framework["k"],
-        antibiotic_framework["time frame"],
-        antibiotic_framework["Initial Populations"]
-        )
-
-        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot     
-
-        # plot dynamics
-        for initial_population in initial_populations:
-            for name, params in genotypes.items():
-
-                X = odeint(dENV_dt, [initial_population,0,0], time_frame,
-                           args=(psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)) # args will be passed down to dX_dt
-                ax.plot(time_frame, X[:,0], label=f'X0={'{:.0e}'.format(initial_population)} k={k}, Ψmax={psi_max}, Ψmin={psi_min}, MIC={zMIC}, I0={params["I0"]}, b={params["b"]} ')
-
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Bacterial Density')
-        ax.set_yscale('log')
-        ax.set_ylim(1, 1e10)   
-
-        antibiotic_exposure_layers_applier(time_frame,ax)
-
-        # this is functionality for getting the legend out of the plot 
-        # i dont use it because if i change the plot width now and 
-        # try to plot env.variation later the plots will have different size
-        # one option is to conditionally do it only if the function is called directly!
-
-        # pos = ax.get_position() #returns bbox in order to manipulate width/height
-        # ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        # ax.legend(bbox_to_anchor=(1.41, 1), fontsize="7") # place legend out of plot
-
-        # only save when called directly
-        if not is_called_from_another_function():
-            save(f'./report/New Population Dynamics', close=False)
-
-        env = [dENV_dt(y, time, psi_max, psi_min, zMIC, k, params, self, antibiotic_concentration)[1] for time, y in zip(time_frame, X)]
-        environmental_variation_layer_applier(time_frame, ax, env)
-        save(f'./report/Dynamics With True Variation')
-
-        fig, ax = plt.subplots(figsize=(14,6)) # prepare plot   
-
-
-
-        ax.plot(time_frame, env, linestyle="dashdot", color="purple", label="True Environmental variation")
-        ax.legend()
-        ax.grid()
-        save(f'./report/True Environemtal variation')
-
-
-        return fig, ax
-
 
     def population_dynamics_antibiotic_frames(self, genotypes, antibiotic_framework):
         
@@ -646,6 +643,7 @@ class Environment():
         fig, ax = self.population_dynamics_antibiotic_frames(genotypes,antibiotic_framework)
 
         time_frame = antibiotic_framework["time frame"]
+        print(self.variation)
 
         # add environmental variation information
         environmental_variation_layer_applier(time_frame, ax, self.variation)

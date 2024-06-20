@@ -1,9 +1,3 @@
-current_env = E[int(t) % T] # E is the environmental variation (as an environmental Cue) at time t
-
-dont understand how this actually works? tracked in debugger and i dont understand the changing of t
-
-
-E[E < 0] = 0.1  # if any of the values are negative, set them to 0
-    should set them to 0 instead of 0.1?
-
-should con = MIC show a flat line in the growth
+BIOLOGY ISSUES
+> If variation is normalized then, magnitude of A is cancelled cause variation will always end up in range [0,1] no matter A value
+> If variation is interpreted as nutrients availability then how are bacteria growing (I0) in zero variation?
