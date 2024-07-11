@@ -8,13 +8,6 @@ from .tools import *
 from scipy.integrate import odeint, solve_ivp   
 
 
-if __name__ == "__main__":
-    print('classes called directly nothing to show..')
-
-else:
-    print('classes loaded..')
-
-    
 class Environment():
 
     def __init__(self, A , B , L , R , t, genotypes, framework):
@@ -101,10 +94,7 @@ class Environment():
 
         genotypes = self.genotypes
         variation = self.variation
-        # print("variation:", variation)
         variation = np.array(variation) # convert list to numpy array for the reaction norm function
-        # print("variation:", variation)
-
         fig, ax = plt.subplots(figsize=(12,6)) # create plot from scratch
 
         for name, params in genotypes.items():
@@ -287,6 +277,7 @@ class Environment():
         save("./results/Dynamics with mutation", close=False)
         return results, fig, ax
 
+    # UNDER DEVELOPMENT with solve_ivp
     def _simulation_with_mutation_event(self):
 
         env_params = self.env_params
@@ -330,6 +321,7 @@ class Environment():
         save("./results/Dynamics with mutation VERSION 2", close=False)
         return fig, ax
 
+    # UNDER DEVELOPMENT with solve_ivp
     def _simulation_with_event(self):
 
 
@@ -420,7 +412,7 @@ class Environment():
 
         save("./results/Responses")
 
-    def actual_psi_max(self):
+    def actual_psi_max_psi_min(self):
 
         time_frame = self.framework["time frame"]
 
@@ -435,16 +427,16 @@ class Environment():
         for index,(name, X) in enumerate(results.items()):
 
             # draw psi max/min data from the results and plot
-            psi_max = [sim(y, time, env_params, genotypes[name], framework)[3] for time, y in zip(time_frame, X)]
-            psi_min = [sim(y, time, env_params, genotypes[name], framework)[4] for time, y in zip(time_frame, X)]
-            ax.plot(time_frame, psi_max, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index])
-            ax.plot(time_frame, psi_min, label=f" psi min  {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index], linestyle="dashdot")
+            psi_max = [sim_with_mutation_event(y, time, env_params, genotypes[name], framework)[4] for time, y in zip(time_frame, X)]
+            psi_min = [sim_with_mutation_event(y, time, env_params, genotypes[name], framework)[5] for time, y in zip(time_frame, X)]
+            ax.plot(time_frame, psi_max, label=f"Ψmax {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index])
+            ax.plot(time_frame, psi_min, label=f"Ψmin {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}", color=color_list[index], linestyle="dashdot")
 
         ax.set_title(f'Actual Ψmax = {get_function_body(growth_rate_modifier)}, Ψmin = {get_function_body(death_rate_modifier)}')
         ax.set_xlabel('Time (t)')
         ax.set_ylabel('Ψmax')          
         ax.legend()
-        save("./results/Actual psi Max")
+        save("./results/Modified Ψmax-Ψmin over time")
     
     def actual_psi_max__antibiotic_effect__growth_rate(self):
 
@@ -482,7 +474,7 @@ class Environment():
 
             save(f"./results/{name}, I0 {genotypes[name]["I0"]}, b {genotypes[name]["b"]}")
 
-    def growth_rate_after_antibiotic(self):
+   
 
         time_frame = self.framework["time frame"]
 
@@ -505,52 +497,6 @@ class Environment():
 
         antibiotic_exposure_layers_applier(time_frame, ax)
         save("./results/Growth Rate")
-
-    def dynamics(self):
-
-        results = self.results
-        genotypes = self.genotypes
-        framework = self.framework
-
-        fig , ax = plt.subplots(figsize=(14,6))
-
-        for name, result in results.items():
-
-            dynamics = result[:,0]
-            ax.plot(framework['time frame'], dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
-
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Bacterial Density')
-        ax.set_yscale('log')
-        ax.set_ylim(1, 1e10)                   
-        ax.legend()
-        save("./results/Dynamics", close=False)
-        return fig, ax
-
-    def dynamics_with_mutation(self):
-
-            results = self.results
-            genotypes = self.genotypes
-            framework = self.framework
-
-            fig , ax = plt.subplots(figsize=(14,6))
-
-            for name, result in results.items():
-
-                wild_type_dynamics = result[:,0]
-                mutant_type_dynamics = result[:,1]
-                
-                ax.plot(framework['time frame'], wild_type_dynamics, label=f"{name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
-                ax.plot(framework['time frame'], mutant_type_dynamics, label=f"mutant: {name}, I0:{genotypes[name]["I0"]}, b:{genotypes[name]["b"]}")
-
-
-            ax.set_xlabel('Time')
-            ax.set_ylabel('Bacterial Density')
-            ax.set_yscale('log')
-            ax.set_ylim(1, 1e10)                   
-            ax.legend()
-            save("./results/Dynamics with mutation", close=False)
-            return fig, ax
     
     def dynamics_with_antibiotic_frames(self):
 
@@ -559,7 +505,6 @@ class Environment():
 
         # add antibiotic exposure information
         antibiotic_exposure_layers_applier(time_frame,ax)
-
 
         save('./results/Dynamics & Antibiotic Frames', close=False)
 
@@ -583,17 +528,7 @@ class Environment():
         save('./results/Dynamics & Antibiotic Frames & Variation', close=False)
         return fig, ax
 
-    def _create_plot(self):
-            
-        fig, ax = plt.subplots(figsize=(12, 6))   
-        ax.plot(self.t, self.variation, label='Environmental Variation', linestyle="dashdot", color="purple")
-        pos = ax.get_position() #returns bbox in order to manipulate width/height
-        ax.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
-        ax.legend(bbox_to_anchor=(1.32, 1)) # place legend out of plot 
-        ax.set_title(f' Environmental variation A={self.A}, B={self.B}, L={self.L}, R={self.R}, trimmed={self.trimmed} ')
-        ax.grid()
-        return fig, ax
-        
+    # LEGACY FUNCTION (JUST FOR REFERENCE)  
     def trim(self):
         '''limiting environmental variation between 0 & 1'''
         # because trim will work directly on self.variation its action is irreversible & will follow the instance for the rest of the script when plots are constructed 
@@ -605,60 +540,7 @@ class Environment():
         # reconstruct variation plot
         self.fig, self.ax = self._create_plot()
 
-    def gene_responses(self, genotypes):
-
-        fig, ax = self._create_plot() # create a copy of the current variation plot (keep clean the original)
-
-        for name, params in genotypes.items():
-            I = reaction_norm(params["I0"], params["b"], self.variation)
-            ax.plot(self.t, I, label=f"{name}, IO={params["I0"]}, b={params["b"]}")
-
-        ax.set_title('Phenotypic Responses')
-        ax.set_xlabel('Time (t)')
-        ax.set_ylabel('Phenotypic response (I)')
-        ax.legend(bbox_to_anchor=(1.34, 1))
-
-        save(f'./report/Responses to Variation', close=False)
-
-        return fig
-
-
-    def population_dynamics_antibiotic_frames(self, genotypes, antibiotic_framework):
-        
-        fig, ax = self.population_dynamics(genotypes, antibiotic_framework)
-
-        time_frame = antibiotic_framework["time frame"]
-
-        # add antibiotic exposure information
-        antibiotic_exposure_layers_applier(time_frame,ax)
-
-        # only save when called directly
-        if not is_called_from_another_function():
-            save(f'./report/Population Dynamics.Antibiotic Layers',close=False)
-
-        return fig, ax
-
-    def population_dynamics_antibiotic_frames_env_variation(self, genotypes, antibiotic_framework):
-        
-        fig, ax = self.population_dynamics_antibiotic_frames(genotypes,antibiotic_framework)
-
-        time_frame = antibiotic_framework["time frame"]
-        print(self.variation)
-
-        # add environmental variation information
-        environmental_variation_layer_applier(time_frame, ax, self.variation)
-        save(f'./report/Population Dynamics.Antibiotic Layers.Variation',close= False)
-
-        return fig, ax
-
-    def run_simulation(self, genotypes, antibiotic_framework):
-        
-        self.save()
-        self.gene_reaction_norms(genotypes)
-        self.gene_responses(genotypes)
-        self.population_dynamics_antibiotic_frames_env_variation(genotypes, antibiotic_framework)
-
-
+# LEGACY CLASS FOR SCALING, NEEDS REFACTORING
 class Simulator():
     '''
     Simulator class is designed to process environments & genotypes.

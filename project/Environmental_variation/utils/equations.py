@@ -136,16 +136,15 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     else:
         a_t = 0    
 
-    true_env_variation = environmental_variation(env_params, time)    # env variation at time t
-    # print("env variation: ", true_env_variation)
-    
-    if A == 0:
+    true_env_variation = environmental_variation(env_params, time) # env variation at time t
+
+    # Normalise variation in range [0,1]
+    if A == 0: # if A equals zero then variation will always be zero
         normalized_variation = 0
     else:
         normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min)
 
-    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation    
-    # print(theoritical_response)
+    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on  normalized variation    
     modified_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
     modified_death_rate = death_rate_modifier(modified_psi_max) # effect of new psiMax to psiMin
 

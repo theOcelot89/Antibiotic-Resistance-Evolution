@@ -43,10 +43,3 @@ antibiotic_framework = {
 environments_params = construct_params(determistic, stochastic, lifespan, relativeVariation, timesteps)
 
 
-if __name__ == "__main__":
-
-    for name, parameters in environments_params.items():
-        print(name, parameters)
-
-    for name, parameters in genotypes_params.items():    
-        print(name, parameters)
