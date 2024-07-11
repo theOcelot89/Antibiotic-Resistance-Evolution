@@ -133,7 +133,7 @@ def environmental_variation_layer_applier(time_frame, ax, variation):
     #create color patches for the legend to show
     exposure_patch = mpatches.Patch(color='red',  alpha=.2, label='Antibiotic Exposure')
     no_exposure_patch = mpatches.Patch(color='green', alpha=.2, label='No exposure')
-    variation_line = Line2D([0], [0], label='Variation', color='black', alpha=0.2, linestyle='dashdot')
+    variation_line = Line2D([0], [0], label='Nutrients Availability', color='black', alpha=0.2, linestyle='dashdot')
     handles, labels = ax.get_legend_handles_labels() # extracting the previous legend stuff
     handles.extend([exposure_patch, no_exposure_patch,variation_line]) # adding the patch to the old stuff
     ax.legend(handles=handles, bbox_to_anchor=(1.36, 1))

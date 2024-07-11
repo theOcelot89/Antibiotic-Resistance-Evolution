@@ -37,7 +37,7 @@ def psi(a, psi_max, psi_min, zMIC, k):
 
 def is_time_for_administration(time):
     # not statement reverses the antibiotic exposure time frames (simply put "not" in front of expression)
-    return not time % 10 < 5
+    return not  time % 20 < 10
 
 def is_time_for_mutation(time, timepoint):
     return timepoint == time 
@@ -49,7 +49,7 @@ def growth_rate_modifier(psi_max, response):
     return psi_max * response
 
 def death_rate_modifier(psi_max):
-    return  - psi_max  * 1.5
+    return  - psi_max * 1.4 
 
 def realized_variation_calculator(env,X):
     return env
@@ -122,10 +122,10 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     if population_is_below_threshold(wild_pop,10):
         wild_pop = 0
 
-    # if population_is_below_threshold(mutant_pop,10):
-    #     mutant_pop = 0
+    if population_is_below_threshold(mutant_pop,2):
+        mutant_pop = 0
 
-    if is_time_for_mutation(int(time),20):
+    if is_time_for_mutation(int(time),240) and wild_pop > 10:
         # print("mutation happened")
         # print(mutation_happened)
         mutant_pop = 10
@@ -136,7 +136,7 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     else:
         a_t = 0    
 
-    true_env_variation = environmental_variation(env_params, time) # env variation at time t
+    true_env_variation = environmental_variation(env_params, time)    # env variation at time t
     # print("env variation: ", true_env_variation)
     
     if A == 0:
