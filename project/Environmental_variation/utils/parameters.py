@@ -13,9 +13,9 @@ timesteps = [101]
 
 
 genotypes_params = {
-    "Genotype 1": {"I0": 0.1, "b": 0.9},
-    "Genotype 2": {"I0": 0.5, "b": 0.5},
-    "Genotype 3": {"I0": 1.0, "b": 0},    
+    "Plastic": {"I0": 0.1, "b": 0.9},
+    "Semi Plastic": {"I0": 0.5, "b": 0.5},
+    "Non Plastic": {"I0": 1.0, "b": 0},    
 }
 
 
@@ -25,14 +25,16 @@ genotypes_params = {
 # for all simulations and layer appliers to work properly
 # the slicing must be at least time+1 (e.g. np.linspace(0, 100, 101))
 
+zMIC = 4
 
 antibiotic_framework = {
-    "zMIC" : 4,
+    "zMIC" : zMIC,
+    "mutant zMIC" : zMIC * 10,
     "Antibiotic Concentration" : 100,
     "psi max" : 0.3,
     "psi min" : -2,
     "k" : 0.8,
-    "time frame" : np.linspace(0, 300, 401),
+    "time frame" : np.linspace(0, 400, 401),
     "Initial Populations": [1e7]
 }
 

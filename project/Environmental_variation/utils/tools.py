@@ -7,6 +7,8 @@ import os
 from PIL import Image 
 import inspect
 import ast
+from matplotlib.lines import Line2D
+
 
 from .equations import is_time_for_administration
 # ╔══════════════════════════════════════════════════╗
@@ -103,9 +105,9 @@ def antibiotic_exposure_layers_applier(period, ax):
 
     # appending highlight to the plot
     for i in set(antibiotic_exposure_frame):
-        ax.axvspan(i, i+1, facecolor='lightcoral', edgecolor='none', alpha=0.3 ) 
+        ax.axvspan(i, i+1, facecolor='lightcoral', edgecolor='none', alpha=0.15 ) 
     for i in set(antibiotic_NOT_exposure_frame):
-        ax.axvspan(i, i+1, facecolor='palegreen', edgecolor='none', alpha=0.3 )
+        ax.axvspan(i, i+1, facecolor='palegreen', edgecolor='none', alpha=0.15 )
 
     #create color patches for the legend to show
     exposure_patch = mpatches.Patch(color='red',  alpha=.2, label='Antibiotic Exposure')
@@ -114,15 +116,29 @@ def antibiotic_exposure_layers_applier(period, ax):
     # https://www.statology.org/matplotlib-manual-legend/
     handles, labels = ax.get_legend_handles_labels() # extracting the previous legend stuff
     handles.extend([exposure_patch,no_exposure_patch]) # adding the patch to the old stuff
-    ax.legend(handles=handles)
+    ax.legend(handles=handles, bbox_to_anchor=(1.34, 1))
 
     return ax
 
 def environmental_variation_layer_applier(time_frame, ax, variation):
 
     variation_axe = ax.twinx()
+
+    # PLACE LEGEND OUT OF PLOT
+    pos = variation_axe.get_position() #returns bbox in order to manipulate width/height
+    variation_axe.set_position([pos.x0, pos.y0, pos.width * 0.8, pos.height]) # shrink figure's width in order to place legend outside of plot
+    # variation_axe.legend(bbox_to_anchor=(1.34, 1)) # place legend out of plot
     
-    custom_plot(variation_axe, time_frame, variation, linestyle="dashdot", color="purple", alpha=0.3, ylim=(-1,1))
+    # https://www.statology.org/matplotlib-manual-legend/
+    #create color patches for the legend to show
+    exposure_patch = mpatches.Patch(color='red',  alpha=.2, label='Antibiotic Exposure')
+    no_exposure_patch = mpatches.Patch(color='green', alpha=.2, label='No exposure')
+    variation_line = Line2D([0], [0], label='Nutrients Availability', color='black', alpha=0.2, linestyle='dashdot')
+    handles, labels = ax.get_legend_handles_labels() # extracting the previous legend stuff
+    handles.extend([exposure_patch, no_exposure_patch,variation_line]) # adding the patch to the old stuff
+    ax.legend(handles=handles, bbox_to_anchor=(1.36, 1))
+    
+    custom_plot(variation_axe, time_frame, variation, linestyle="dashdot", color="black", alpha=0.2, ylim=(0,1))
     # variation_axe.yaxis.set_major_locator(ticker.NullLocator()) # remove ticks and labels rom y axis
 
 def custom_plot(ax, xdim, ydim, **params):
@@ -178,14 +194,11 @@ def is_called_from_another_function():
             return True
     return False
 
-def generate_color_list(num_colors, colormap_name='Set1'):
-    # Get the colormap
-    colormap = plt.get_cmap(colormap_name)
+def generate_color_list(num_colors):
+    # Get the default color cycle from Matplotlib
+    color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
     
-    # Generate a list of equally spaced values from 0 to 1
-    color_indices = np.linspace(0, 1, num_colors)
-    
-    # Generate the list of colors
-    color_list = [colormap(index) for index in color_indices]
+    # If num_colors is greater than the length of the color cycle, repeat the cycle
+    color_list = [color_cycle[i % len(color_cycle)] for i in range(num_colors)]
     
     return color_list

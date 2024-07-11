@@ -37,7 +37,7 @@ def psi(a, psi_max, psi_min, zMIC, k):
 
 def is_time_for_administration(time):
     # not statement reverses the antibiotic exposure time frames (simply put "not" in front of expression)
-    return not time % 10 < 5
+    return not  time % 20 < 10
 
 def is_time_for_mutation(time, timepoint):
     return timepoint == time 
@@ -49,7 +49,7 @@ def growth_rate_modifier(psi_max, response):
     return psi_max * response
 
 def death_rate_modifier(psi_max):
-    return  - psi_max  * 1.5
+    return  - psi_max * 1.4 
 
 def realized_variation_calculator(env,X):
     return env
@@ -109,27 +109,23 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     wild_pop = initial_conditions[0]
     mutant_pop = initial_conditions[1]
 
-
     psi_max = antibiotic_framework_params["psi max"]
     psi_min = antibiotic_framework_params["psi min"]
     antibody_concentration = antibiotic_framework_params["Antibiotic Concentration"]
     zMIC = antibiotic_framework_params["zMIC"]
+    mutated_zMIC = antibiotic_framework_params['mutant zMIC']
     k = antibiotic_framework_params["k"]
     A, B, L, R = env_params
     variation_max = A
     variation_min = - variation_max
-    mutated_zMIC = zMIC * 10
-
-    
+  
     if population_is_below_threshold(wild_pop,10):
         wild_pop = 0
 
-    # if population_is_below_threshold(mutant_pop,10):
-    #     mutant_pop = 0
+    if population_is_below_threshold(mutant_pop,2):
+        mutant_pop = 0
 
-
-
-    if is_time_for_mutation(int(time),20):
+    if is_time_for_mutation(int(time),240) and wild_pop > 10:
         # print("mutation happened")
         # print(mutation_happened)
         mutant_pop = 10
@@ -140,10 +136,16 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     else:
         a_t = 0    
 
-    true_env_variation = environmental_variation(env_params, time) # env variation at time t
-    normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min) 
-    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation    
+    true_env_variation = environmental_variation(env_params, time)    # env variation at time t
+    # print("env variation: ", true_env_variation)
+    
+    if A == 0:
+        normalized_variation = 0
+    else:
+        normalized_variation = (true_env_variation - variation_min) / (variation_max - variation_min)
 
+    theoritical_response = reaction_norm(gene_params, normalized_variation) # response based on variation    
+    # print(theoritical_response)
     modified_psi_max = growth_rate_modifier(psi_max, theoritical_response) # effect of response to psiMax
     modified_death_rate = death_rate_modifier(modified_psi_max) # effect of new psiMax to psiMin
 
@@ -158,7 +160,6 @@ def sim_with_mutation_event(initial_conditions, time, env_params, gene_params, a
     # ACTUAL GROWTH FOR WILD & MUTANT POPULATIONS
     wild_actual_growth_rate = np.log(10) * wild_growth_rate_after_antibiotic * wild_pop * (1 - (wild_pop/1e9))
     mutant_actual_growth_rate = np.log(10) * mutant_growth_rate_after_antibiotic * mutant_pop * (1 - (mutant_pop/1e9))
-
 
     return [max(wild_actual_growth_rate, -wild_pop / 0.04),
             max(mutant_actual_growth_rate, -mutant_pop / 0.04),
