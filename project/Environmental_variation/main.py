@@ -7,7 +7,7 @@ from utils.parameters import *
 # ╚══════════════════════════════════════════════════╝
 
 # Environment parameters (time will not be consumed in the simulation - it is defined in the parameters)
-A, B, L, R, t = 1, 0, 10, 8, 100
+A, B, L, R, t = 1, 0, 10, 2, 100
 
 #region environment simulations
 environment = Environment(A , B , L , R , t , genotypes_params, antibiotic_framework)

@@ -9,10 +9,10 @@ def reaction_norm(I0, b, C):
     return I0 + b * C
 
 # Set common parameters for environmental variation, adjusting B to introduce stochasticity
-T = 365 # number of time steps to simulate (e.g., days in a year)
+T = 100 # number of time steps to simulate (e.g., days in a year)
 L = 5 # lifespan
 epsilon = np.random.normal(0, 1, T) # stochastic error term
-A, B, L, R = 1, 0.2, 365, 0.1 # Adjusted B to include stochastic error in environmental variation
+A, B, L, R = 1, 0, 1, 1 # Adjusted B to include stochastic error in environmental variation
 E = environmental_variation(np.arange(T), A, B, L, R, epsilon)
 
 # Parameters for three genotypes

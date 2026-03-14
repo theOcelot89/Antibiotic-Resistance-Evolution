@@ -15,13 +15,14 @@ def dENV_dt(y,t, params):
 
     A, B, L, R  = params
     epsilon = np.random.normal(0, 1)
-    sin =  A * np.sin(2 * np.pi * t / (L * R)) + B * epsilon 
+    sin =  A * np.cos(2 * np.pi * t / (L * R)) + B * epsilon 
     print(sin)
     return sin
 
 variation = odeint(dENV_dt, y0, time, args=(params,))
 
 env = [dENV_dt(y, time, params) for time, y in zip(time, variation)]
+
 
 plt.plot(time, env, linestyle="dashdot", color="blue", label="sin")
 # plt.plot(time, variation, label="env inside odeint")
